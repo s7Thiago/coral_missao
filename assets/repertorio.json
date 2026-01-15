@@ -1,0 +1,59 @@
+[
+    {
+        "id": "agnus_dei_00",
+        "titulo": "AGNUS DEI",
+        "vozes": [
+            {
+                "naipe": "SOPRANO",
+                "link": "https://github.com/s7Thiago/coral_missao/releases/download/v1.0-audios/AGNUS_DEI.SOPRANO.mp3"
+            },
+            {
+                "naipe": "CONTRALTO",
+                "link": "https://github.com/s7Thiago/coral_missao/releases/download/v1.0-audios/AGNUS_DEI.CONTRALTO.mp3"
+            },
+            {
+                "naipe": "TENOR",
+                "link": "https://github.com/s7Thiago/coral_missao/releases/download/v1.0-audios/AGNUS_DEI.TENOR.mp3"
+            },
+            {
+                "naipe": "BAIXO",
+                "link": "https://github.com/s7Thiago/coral_missao/releases/download/v1.0-audios/AGNUS_DEI.BAIXO.mp3"
+            }
+        ],
+        "tamanho": "8.91MB"
+    },
+    {
+        "id": "jerusalem_00",
+        "titulo": "JERUSALÉM",
+        "vozes": [
+            {
+                "naipe": "SOPRANO",
+                "link": "https://github.com/s7Thiago/coral_missao/releases/download/v1.0-audios/JERUSALEM.SOPRANO.mp3"
+            },
+            {
+                "naipe": "CONTRALTO",
+                "link": "https://github.com/s7Thiago/coral_missao/releases/download/v1.0-audios/JERUSALEM.CONTRALTO.mp3"
+            },
+            {
+                "naipe": "TENOR 2",
+                "link": "https://github.com/s7Thiago/coral_missao/releases/download/v1.0-audios/JERUSALEM.TENOR_2.mp3"
+            },
+            {
+                "naipe": "BAIXO",
+                "link": "https://github.com/s7Thiago/coral_missao/releases/download/v1.0-audios/JERUSALEM.BAIXO.mp3"
+            }
+        ],
+        "tamanho": "9.33MB"
+    },
+    {
+        "id": "o_rei_vem_vindo_00",
+        "titulo": "O REI VEM VINDO",
+        "vozes": [
+            {
+                "naipe": "CONTRALTO",
+                "link": "https://github.com/s7Thiago/coral_missao/releases/download/v1.0-audios/O_REI_VEM_VINDO-Refrao.CONTRALTO.mp3"
+            }
+        ],
+        "tamanho": "1MB"
+    }
+]
