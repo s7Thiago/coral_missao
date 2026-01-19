@@ -9,26 +9,43 @@ class AudioService {
     try {
       print("Verificando cache ou baixando: $url");
 
-      // O getSingleFile busca no cache. Se não tiver, baixa e salva.
-      // No Flutter Web, isso usa o Cache API do navegador.
+      // Tenta baixar/buscar do cache
       final file = await DefaultCacheManager().getSingleFile(url);
 
-      // Toca o arquivo local
+      // Se sucesso, toca do arquivo local (blob URL no web)
       await _player.setFilePath(file.path);
-      // Nota: No Web, o file.path é uma URL blob especial (blob:http://...)
-
       _player.play();
     } catch (e) {
-      print("Erro ao carregar áudio: $e");
+      print("Erro ao usar cache (provável CORS ou erro de rede): $e");
+      print("Tentando reprodução direta (streaming)...");
+
+      try {
+        // Fallback: Tenta tocar direto da URL (streaming)
+        // Isso geralmente funciona no Web mesmo sem CORS (opaque response),
+        // mas não permite cache offline se o servidor não suportar.
+        await _player.setUrl(url);
+        _player.play();
+      } catch (e2) {
+        print("Erro fatal ao reproduzir áudio: $e2");
+        rethrow; // Propaga erro para a UI tratar
+      }
     }
   }
 
   // Função para apenas baixar (Botão de Download)
   Future<void> baixarParaOffline(String url) async {
-    // Apenas chamamos o getSingleFile sem dar play.
-    // Isso força o download e o armazenamento no cache.
-    await DefaultCacheManager().getSingleFile(url);
-    print("Áudio salvo para uso offline!");
+    try {
+      // Apenas chamamos o getSingleFile sem dar play.
+      // Isso força o download e o armazenamento no cache.
+      await DefaultCacheManager().getSingleFile(url);
+      print("Áudio salvo para uso offline!");
+    } catch (e) {
+      print("Erro ao baixar para offline: $e");
+      // Opcional: Relançar ou notificar UI
+      throw Exception(
+        "Não foi possível baixar para offline. Verifique a conexão ou restrições do servidor.",
+      );
+    }
   }
 
   // Verifica se já está baixado (para mudar ícone da UI)
