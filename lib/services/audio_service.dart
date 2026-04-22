@@ -23,14 +23,14 @@ class MyAudioSource extends StreamAudioSource {
 
 class AudioService {
   final AudioPlayer _player = AudioPlayer();
-  final String _boxName = 'audioCache';
+  final String _boxName = 'kitsCoral';
 
   // Função para tocar (Gerencia o download automático)
   Future<void> tocarAudio(String url) async {
     try {
       print("Verificando cache ou baixando: $url");
       var audioBox = Hive.box(_boxName);
-      
+
       // 1. Tenta recuperar do cache (Hive)
       Uint8List? audioBytes = audioBox.get(url);
 
@@ -71,12 +71,12 @@ class AudioService {
   Future<void> baixarParaOffline(String url) async {
     try {
       var audioBox = Hive.box(_boxName);
-      
+
       if (audioBox.containsKey(url)) {
         print("Áudio já salvo offline!");
         return;
       }
-      
+
       var response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
         await audioBox.put(url, response.bodyBytes);

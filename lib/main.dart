@@ -8,12 +8,12 @@ import 'views/home_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   if (!kIsWeb) {
     final dir = await getApplicationDocumentsDirectory();
     Hive.init(dir.path);
   }
-  await Hive.openBox('audioCache');
+  await Hive.openBox('kitsCoral');
 
   runApp(
     MultiProvider(
