@@ -1,33 +1,68 @@
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'dart:typed_data';
+import 'package:hive/hive.dart';
+import 'package:http/http.dart' as http;
 import 'package:just_audio/just_audio.dart';
+
+class MyAudioSource extends StreamAudioSource {
+  final Uint8List bytes;
+  MyAudioSource(this.bytes);
+
+  @override
+  Future<StreamAudioResponse> request([int? start, int? end]) async {
+    start ??= 0;
+    end ??= bytes.length;
+    return StreamAudioResponse(
+      sourceLength: bytes.length,
+      contentLength: end - start,
+      offset: start,
+      stream: Stream.value(bytes.sublist(start, end)),
+      contentType: 'audio/mpeg',
+    );
+  }
+}
 
 class AudioService {
   final AudioPlayer _player = AudioPlayer();
+  final String _boxName = 'audioCache';
 
   // Função para tocar (Gerencia o download automático)
   Future<void> tocarAudio(String url) async {
     try {
       print("Verificando cache ou baixando: $url");
+      var audioBox = Hive.box(_boxName);
+      
+      // 1. Tenta recuperar do cache (Hive)
+      Uint8List? audioBytes = audioBox.get(url);
 
-      // Tenta baixar/buscar do cache
-      final file = await DefaultCacheManager().getSingleFile(url);
+      if (audioBytes == null) {
+        // 2. Se não estiver no cache, baixa via HTTP
+        print("Baixando áudio...");
+        var response = await http.get(Uri.parse(url));
+        if (response.statusCode == 200) {
+          audioBytes = response.bodyBytes;
+          // Salva no Hive para uso futuro
+          await audioBox.put(url, audioBytes);
+        } else {
+          throw Exception("Falha no download (Status: ${response.statusCode})");
+        }
+      } else {
+        print("Áudio encontrado no cache!");
+      }
 
-      // Se sucesso, toca do arquivo local (blob URL no web)
-      await _player.setFilePath(file.path);
+      // 3. Toca usando a fonte de áudio customizada baseada em bytes
+      await _player.setAudioSource(MyAudioSource(audioBytes));
       _player.play();
     } catch (e) {
-      print("Erro ao usar cache (provável CORS ou erro de rede): $e");
-      print("Tentando reprodução direta (streaming)...");
+      print("Erro ao usar cache ou baixar (provável CORS ou erro de rede): $e");
+      print("Tentando reprodução direta via streaming...");
 
       try {
         // Fallback: Tenta tocar direto da URL (streaming)
-        // Isso geralmente funciona no Web mesmo sem CORS (opaque response),
-        // mas não permite cache offline se o servidor não suportar.
         await _player.setUrl(url);
         _player.play();
       } catch (e2) {
         print("Erro fatal ao reproduzir áudio: $e2");
-        rethrow; // Propaga erro para a UI tratar
+        rethrow;
       }
     }
   }
@@ -35,22 +70,29 @@ class AudioService {
   // Função para apenas baixar (Botão de Download)
   Future<void> baixarParaOffline(String url) async {
     try {
-      // Apenas chamamos o getSingleFile sem dar play.
-      // Isso força o download e o armazenamento no cache.
-      await DefaultCacheManager().getSingleFile(url);
-      print("Áudio salvo para uso offline!");
+      var audioBox = Hive.box(_boxName);
+      
+      if (audioBox.containsKey(url)) {
+        print("Áudio já salvo offline!");
+        return;
+      }
+      
+      var response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        await audioBox.put(url, response.bodyBytes);
+        print("Áudio salvo para uso offline!");
+      } else {
+        throw Exception("Falha no download (Status: ${response.statusCode})");
+      }
     } catch (e) {
       print("Erro ao baixar para offline: $e");
-      // Opcional: Relançar ou notificar UI
-      throw Exception(
-        "Não foi possível baixar para offline. Verifique a conexão ou restrições do servidor.",
-      );
+      print("AVISO: Não foi possível salvar offline.");
     }
   }
 
   // Verifica se já está baixado (para mudar ícone da UI)
   Future<bool> estaBaixado(String url) async {
-    final fileInfo = await DefaultCacheManager().getFileFromCache(url);
-    return fileInfo != null;
+    var audioBox = Hive.box(_boxName);
+    return audioBox.containsKey(url);
   }
 }

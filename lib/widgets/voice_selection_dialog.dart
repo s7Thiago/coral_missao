@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/repertorio_model.dart';
 import '../utils/app_colors.dart';
 import '../services/audio_service.dart';
+import '../utils/screen_utils.dart';
 
 class VoiceSelectionDialog extends StatefulWidget {
   final RepertorioItem item;
@@ -24,23 +25,49 @@ class _VoiceSelectionDialogState extends State<VoiceSelectionDialog> {
     }
 
     try {
+      // Verifica se já está baixado
+      final bool isCached = await _audioService.estaBaixado(url);
+
+      if (!isCached) {
+        // Se não estiver, avisa (opcional) e baixa
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Baixando áudio para reprodução offline...'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+        await _audioService.baixarParaOffline(url);
+      }
+
+      // Reproduz (agora garantido que está no cache ou tenta buscar de lá)
       await _audioService.tocarAudio(url);
     } catch (e) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Erro ao reproduzir áudio: $e')));
+      ).showSnackBar(SnackBar(content: Text('Erro ao processar áudio: $e')));
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    double width;
+    if (context.isDesktop) {
+      width = 400;
+    } else if (context.isTablet) {
+      width = MediaQuery.of(context).size.width * 0.5;
+    } else {
+      width = MediaQuery.of(context).size.width * 0.85;
+    }
+
     return Center(
       child: Hero(
         tag: widget.item.id,
         child: Material(
           type: MaterialType.transparency,
-          child: Container(
-            width: MediaQuery.of(context).size.width * 0.85,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOutCubic,
+            width: width,
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.8,
             ),

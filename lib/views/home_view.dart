@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../viewmodels/repertorio_viewmodel.dart';
 import '../models/repertorio_model.dart';
 import '../widgets/repertorio_list_item.dart';
+import '../utils/screen_utils.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -49,18 +50,30 @@ class _HomeViewState extends State<HomeView> {
             itemCount: viewModel.repertorio.length,
             itemBuilder: (context, index) {
               final RepertorioItem item = viewModel.repertorio[index];
-              return RepertorioListItem(
-                item: item,
-                isDownloaded:
-                    false, // Default to false for now as per instructions
-                onPressed: () {
-                  // TODO: Implement download logic
-                  print('Download ${item.titulo}');
-                },
-                onPlayPressed: () {
-                  // TODO: Implement play logic
-                  print('Play ${item.titulo}');
-                },
+              return Center(
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOutQuad,
+                  constraints: BoxConstraints(
+                    maxWidth: context.isDesktop
+                        ? 800
+                        : context.isTablet
+                        ? 700
+                        : MediaQuery.of(context).size.width,
+                  ),
+                  child: RepertorioListItem(
+                    item: item,
+                    isDownloaded: false,
+                    onPressed: () {
+                      // TODO: Implement download logic
+                      print('Download ${item.titulo}');
+                    },
+                    onPlayPressed: () {
+                      // TODO: Implement play logic
+                      print('Play ${item.titulo}');
+                    },
+                  ),
+                ),
               );
             },
           );
