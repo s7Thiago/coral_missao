@@ -6,6 +6,8 @@ import 'package:provider/provider.dart';
 import 'viewmodels/repertorio_viewmodel.dart';
 import 'views/home_view.dart';
 
+import 'services/audio_service.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -17,7 +19,10 @@ void main() async {
 
   runApp(
     MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => RepertorioViewModel())],
+      providers: [
+        ChangeNotifierProvider(create: (_) => RepertorioViewModel()),
+        ChangeNotifierProvider(create: (_) => AudioService()),
+      ],
       child: const MyApp(),
     ),
   );

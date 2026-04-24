@@ -20,8 +20,8 @@ class RepertorioListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Hero(
-      tag: item.id,
+    return SizedBox(
+      // tag: item.id,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         decoration: BoxDecoration(
@@ -41,10 +41,19 @@ class RepertorioListItem extends StatelessWidget {
           child: InkWell(
             borderRadius: BorderRadius.circular(20),
             onTap: () {
+              // final rect = getWidgetGlobalRect(context);
+
+              // if (rect != null) {
+              //   customLauncherHero(
+              //     context: context,
+              //     target: VoiceSelectionDialog(item: item),
+              //     originRect: rect,
+              //   );
+              // }
               customLauncher(
                 context: context,
                 target: VoiceSelectionDialog(item: item),
-                opaque: false, // Ensure transparency for the overlay effect
+                opaque: false,
               );
             },
             child: Padding(
@@ -158,18 +167,21 @@ class RepertorioListItem extends StatelessWidget {
     final String voice = voz.naipe;
     final color = AppColors.getVoiceColor(voice);
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        voice,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
+    return Hero(
+      tag: voz.link,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          voice,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );

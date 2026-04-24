@@ -1,51 +1,24 @@
+import 'package:coral_missao/utils/ui_utils.dart';
+import 'package:coral_missao/views/music_player_view.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/repertorio_model.dart';
 import '../utils/app_colors.dart';
 import '../services/audio_service.dart';
 import '../utils/screen_utils.dart';
 
-class VoiceSelectionDialog extends StatefulWidget {
+class VoiceSelectionDialog extends StatelessWidget {
   final RepertorioItem item;
 
   const VoiceSelectionDialog({super.key, required this.item});
 
-  @override
-  State<VoiceSelectionDialog> createState() => _VoiceSelectionDialogState();
-}
-
-class _VoiceSelectionDialogState extends State<VoiceSelectionDialog> {
-  final AudioService _audioService = AudioService();
-
-  Future<void> _handleVoiceTap(BuildContext context, String url) async {
-    if (url.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Link indisponível para este naipe.')),
-      );
-      return;
-    }
-
-    try {
-      // Verifica se já está baixado
-      final bool isCached = await _audioService.estaBaixado(url);
-
-      if (!isCached) {
-        // Se não estiver, avisa (opcional) e baixa
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Baixando áudio para reprodução offline...'),
-            duration: Duration(seconds: 1),
-          ),
-        );
-        await _audioService.baixarParaOffline(url);
-      }
-
-      // Reproduz (agora garantido que está no cache ou tenta buscar de lá)
-      await _audioService.tocarAudio(url);
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Erro ao processar áudio: $e')));
-    }
+  void _handleVoiceTap(BuildContext context, Voz voz) {
+    context.read<AudioService>().playVoz(voz);
+    customLauncher(
+      context: context,
+      target: MusicPlayerView(item: item),
+      opaque: false,
+    );
   }
 
   @override
@@ -60,8 +33,7 @@ class _VoiceSelectionDialogState extends State<VoiceSelectionDialog> {
     }
 
     return Center(
-      child: Hero(
-        tag: widget.item.id,
+      child: SizedBox(
         child: Material(
           type: MaterialType.transparency,
           child: AnimatedContainer(
@@ -94,7 +66,7 @@ class _VoiceSelectionDialogState extends State<VoiceSelectionDialog> {
                     children: [
                       Expanded(
                         child: Text(
-                          widget.item.titulo,
+                          item.titulo,
                           style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -120,7 +92,7 @@ class _VoiceSelectionDialogState extends State<VoiceSelectionDialog> {
                   ),
                   const SizedBox(height: 16),
                   Column(
-                    children: widget.item.vozes
+                    children: item.vozes
                         .map((voz) => _buildVoiceItem(context, voz))
                         .toList(),
                   ),
@@ -136,33 +108,36 @@ class _VoiceSelectionDialogState extends State<VoiceSelectionDialog> {
   Widget _buildVoiceItem(BuildContext context, Voz voz) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      child: Material(
-        color: const Color(0xFFF5F8FA),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: Color(0xFFE1E8ED)),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: ListTile(
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 4,
+      child: Hero(
+        tag: voz.link,
+        child: Material(
+          color: const Color(0xFFF5F8FA),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: const BorderSide(color: Color(0xFFE1E8ED)),
           ),
-          leading: _buildVoiceIcon(voz.naipe),
-          title: Text(
-            voz.naipe,
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 16,
-              color: Color(0xFF2C3E50),
+          clipBehavior: Clip.antiAlias,
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 4,
             ),
+            leading: _buildVoiceIcon(voz.naipe),
+            title: Text(
+              voz.naipe,
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+                color: Color(0xFF2C3E50),
+              ),
+            ),
+            trailing: const Icon(
+              Icons.play_circle_fill_rounded,
+              size: 32,
+              color: Color(0xFF5E819D),
+            ),
+            onTap: () => _handleVoiceTap(context, voz),
           ),
-          trailing: const Icon(
-            Icons.play_circle_fill_rounded, // Changed to Play icon
-            size: 32, // Increased size for better touch target
-            color: Color(0xFF5E819D), // Matches theme
-          ),
-          onTap: () => _handleVoiceTap(context, voz.link),
         ),
       ),
     );
