@@ -7,7 +7,8 @@ import '../models/repertorio_model.dart';
 
 class MyAudioSource extends StreamAudioSource {
   final Uint8List bytes;
-  MyAudioSource(this.bytes);
+  final String id;
+  MyAudioSource(this.bytes, this.id) : super(tag: id);
 
   @override
   Future<StreamAudioResponse> request([int? start, int? end]) async {
@@ -132,7 +133,8 @@ class AudioService extends ChangeNotifier {
       }
 
       // 3. Toca usando a fonte de áudio customizada baseada em bytes
-      await _player.setAudioSource(MyAudioSource(audioBytes));
+      await _player.stop();
+      await _player.setAudioSource(MyAudioSource(audioBytes, url));
       _player.play();
     } catch (e) {
       print("Erro ao usar cache ou baixar (provável CORS ou erro de rede): $e");
@@ -140,6 +142,7 @@ class AudioService extends ChangeNotifier {
 
       try {
         // Fallback: Tenta tocar direto da URL (streaming)
+        await _player.stop();
         await _player.setUrl(url);
         _player.play();
       } catch (e2) {

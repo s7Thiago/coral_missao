@@ -30,7 +30,7 @@ class MusicPlayerView extends StatelessWidget {
         child: Column(
           children: [
             const SizedBox(height: 16),
-            
+
             // Header
             Text(
               'Reproduzindo: ${item.titulo.toUpperCase()}',
@@ -42,7 +42,7 @@ class MusicPlayerView extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
-            
+
             // Album Art placeholder
             Expanded(
               child: Padding(
@@ -65,9 +65,9 @@ class MusicPlayerView extends StatelessWidget {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 32),
-            
+
             // Progress Bar
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -76,19 +76,34 @@ class MusicPlayerView extends StatelessWidget {
                   SliderTheme(
                     data: SliderThemeData(
                       trackHeight: 4,
-                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-                      overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+                      thumbShape: const RoundSliderThumbShape(
+                        enabledThumbRadius: 6,
+                      ),
+                      overlayShape: const RoundSliderOverlayShape(
+                        overlayRadius: 14,
+                      ),
                       activeTrackColor: const Color(0xFF16476B),
                       inactiveTrackColor: const Color(0xFFD4E4F1),
                       thumbColor: const Color(0xFF16476B),
-                      overlayColor: const Color(0xFF16476B).withValues(alpha: 0.2),
+                      overlayColor: const Color(
+                        0xFF16476B,
+                      ).withValues(alpha: 0.2),
                     ),
                     child: Slider(
-                      value: position.inMilliseconds.toDouble().clamp(0, duration.inMilliseconds.toDouble() > 0 ? duration.inMilliseconds.toDouble() : 0),
+                      value: position.inMilliseconds.toDouble().clamp(
+                        0,
+                        duration.inMilliseconds.toDouble() > 0
+                            ? duration.inMilliseconds.toDouble()
+                            : 0,
+                      ),
                       min: 0,
-                      max: duration.inMilliseconds.toDouble() > 0 ? duration.inMilliseconds.toDouble() : 1.0,
+                      max: duration.inMilliseconds.toDouble() > 0
+                          ? duration.inMilliseconds.toDouble()
+                          : 1.0,
                       onChanged: (value) {
-                        audioService.seek(Duration(milliseconds: value.toInt()));
+                        audioService.seek(
+                          Duration(milliseconds: value.toInt()),
+                        );
                       },
                     ),
                   ),
@@ -99,11 +114,17 @@ class MusicPlayerView extends StatelessWidget {
                       children: [
                         Text(
                           _formatDuration(position),
-                          style: const TextStyle(color: Color(0xFF5A7894), fontSize: 12),
+                          style: const TextStyle(
+                            color: Color(0xFF5A7894),
+                            fontSize: 12,
+                          ),
                         ),
                         Text(
                           _formatDuration(duration),
-                          style: const TextStyle(color: Color(0xFF5A7894), fontSize: 12),
+                          style: const TextStyle(
+                            color: Color(0xFF5A7894),
+                            fontSize: 12,
+                          ),
                         ),
                       ],
                     ),
@@ -111,9 +132,9 @@ class MusicPlayerView extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Playback Controls
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -136,7 +157,9 @@ class MusicPlayerView extends StatelessWidget {
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                      isPlaying
+                          ? Icons.pause_rounded
+                          : Icons.play_arrow_rounded,
                       size: 40,
                       color: Colors.white,
                     ),
@@ -153,7 +176,7 @@ class MusicPlayerView extends StatelessWidget {
                 ),
               ],
             ),
-            
+
             // Speed Control
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -163,7 +186,10 @@ class MusicPlayerView extends StatelessWidget {
                   onTap: audioService.changeSpeed,
                   borderRadius: BorderRadius.circular(20),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFD3E4F2),
                       borderRadius: BorderRadius.circular(20),
@@ -179,9 +205,9 @@ class MusicPlayerView extends StatelessWidget {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Voice Selection
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 24.0),
@@ -189,15 +215,12 @@ class MusicPlayerView extends StatelessWidget {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   'Selecione o Naipe',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Color(0xFF1A1A1A),
-                  ),
+                  style: TextStyle(fontSize: 18, color: Color(0xFF1A1A1A)),
                 ),
               ),
             ),
             const SizedBox(height: 16),
-            
+
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -210,20 +233,31 @@ class MusicPlayerView extends StatelessWidget {
                       onTap: () => audioService.playVoz(voz),
                       borderRadius: BorderRadius.circular(20),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 10,
+                        ),
                         decoration: BoxDecoration(
-                          color: isSelected ? const Color(0xFF16476B) : Colors.white,
+                          color: isSelected
+                              ? const Color(0xFF16476B)
+                              : Colors.white,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: isSelected ? const Color(0xFF16476B) : const Color(0xFFE0E0E0),
+                            color: isSelected
+                                ? const Color(0xFF16476B)
+                                : const Color(0xFFE0E0E0),
                             width: 1.0,
                           ),
                         ),
                         child: Text(
                           voz.naipe,
                           style: TextStyle(
-                            color: isSelected ? Colors.white : const Color(0xFF757575),
-                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                            color: isSelected
+                                ? Colors.white
+                                : const Color(0xFF757575),
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.normal,
                           ),
                         ),
                       ),
@@ -232,7 +266,7 @@ class MusicPlayerView extends StatelessWidget {
                 }).toList(),
               ),
             ),
-            
+
             const SizedBox(height: 32),
           ],
         ),

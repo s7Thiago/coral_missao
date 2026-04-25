@@ -1,10 +1,11 @@
+import 'package:coral_missao/services/audio_service.dart';
 import 'package:coral_missao/utils/ui_utils.dart';
 import 'package:coral_missao/views/music_player_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../models/repertorio_model.dart';
 import '../utils/app_colors.dart';
-import '../services/audio_service.dart';
 import '../utils/screen_utils.dart';
 
 class VoiceSelectionDialog extends StatelessWidget {
