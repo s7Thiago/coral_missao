@@ -153,18 +153,21 @@ class MusicPlayerView extends StatelessWidget {
                 const SizedBox(width: 24),
                 GestureDetector(
                   onTap: audioService.togglePlayPause,
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF043359),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      isPlaying
-                          ? Icons.pause_rounded
-                          : Icons.play_arrow_rounded,
-                      size: 40,
-                      color: Colors.white,
+                  child: Hero(
+                    tag: 'play_button_${item.titulo}_${currentVoz?.naipe}',
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF043359),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        isPlaying
+                            ? Icons.pause_rounded
+                            : Icons.play_arrow_rounded,
+                        size: 40,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),
@@ -233,34 +236,41 @@ class MusicPlayerView extends StatelessWidget {
                   return Padding(
                     padding: const EdgeInsets.only(right: 8.0),
                     child: InkWell(
-                      onTap: () => audioService.playVoz(voz, keepPosition: true),
+                      onTap: () =>
+                          audioService.playVoz(voz, keepPosition: true),
                       borderRadius: BorderRadius.circular(20),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? const Color(0xFF16476B)
-                              : Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: isSelected
-                                ? const Color(0xFF16476B)
-                                : const Color(0xFFE0E0E0),
-                            width: 1.0,
-                          ),
-                        ),
-                        child: Text(
-                          voz.naipe,
-                          style: TextStyle(
-                            color: isSelected
-                                ? Colors.white
-                                : const Color(0xFF757575),
-                            fontWeight: isSelected
-                                ? FontWeight.w600
-                                : FontWeight.normal,
+                      child: Hero(
+                        tag: 'title_voice_${item.titulo}_${voz.naipe}',
+                        child: Material(
+                          type: MaterialType.transparency,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? const Color(0xFF16476B)
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: isSelected
+                                    ? const Color(0xFF16476B)
+                                    : const Color(0xFFE0E0E0),
+                                width: 1.0,
+                              ),
+                            ),
+                            child: Text(
+                              voz.naipe,
+                              style: TextStyle(
+                                color: isSelected
+                                    ? Colors.white
+                                    : const Color(0xFF757575),
+                                fontWeight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
+                              ),
+                            ),
                           ),
                         ),
                       ),

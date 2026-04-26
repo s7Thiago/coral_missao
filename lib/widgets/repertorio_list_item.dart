@@ -85,16 +85,22 @@ class RepertorioListItem extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min, // Wrap content height
                       children: [
-                        Text(
-                          item.titulo,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1A1A1A),
-                            letterSpacing: 0.5,
+                        Hero(
+                          tag: 'titulo_${item.titulo}_${item.id}',
+                          child: Material(
+                            type: MaterialType.transparency,
+                            child: Text(
+                              item.titulo,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1A1A1A),
+                                letterSpacing: 0.5,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 8),
                         // Pass 'item' to _buildBadge to access the full Voz object if needed,
@@ -168,7 +174,7 @@ class RepertorioListItem extends StatelessWidget {
     final color = AppColors.getVoiceColor(voice);
 
     return Hero(
-      tag: voz.link,
+      tag: 'badge_${voz.link}_${voz.naipe}',
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(

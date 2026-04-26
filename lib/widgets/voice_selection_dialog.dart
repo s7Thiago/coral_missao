@@ -67,15 +67,21 @@ class VoiceSelectionDialog extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
-                        child: Text(
-                          item.titulo,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1A1A1A),
+                        child: Hero(
+                          tag: 'titulo_${item.titulo}_${item.id}',
+                          child: Material(
+                            type: MaterialType.transparency,
+                            child: Text(
+                              item.titulo,
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1A1A1A),
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       IconButton(
@@ -89,11 +95,13 @@ class VoiceSelectionDialog extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
                   const Text(
-                    'Selecione um naipe para ouvir/baixar:',
+                    'Selecione um naipe para ouvir:',
                     style: TextStyle(fontSize: 14, color: Color(0xFF666666)),
                   ),
                   const SizedBox(height: 16),
-                  DownloadIndicator(currentVoz: context.watch<AudioService>().currentVoz),
+                  DownloadIndicator(
+                    currentVoz: context.watch<AudioService>().currentVoz,
+                  ),
                   Column(
                     children: item.vozes
                         .map((voz) => _buildVoiceItem(context, voz))
@@ -111,36 +119,47 @@ class VoiceSelectionDialog extends StatelessWidget {
   Widget _buildVoiceItem(BuildContext context, Voz voz) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      child: Hero(
-        tag: voz.link,
-        child: Material(
-          color: const Color(0xFFF5F8FA),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: const BorderSide(color: Color(0xFFE1E8ED)),
+      child: Material(
+        color: const Color(0xFFF5F8FA),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: Color(0xFFE1E8ED)),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: ListTile(
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
           ),
-          clipBehavior: Clip.antiAlias,
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 4,
-            ),
-            leading: _buildVoiceIcon(voz.naipe),
-            title: Text(
-              voz.naipe,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
-                color: Color(0xFF2C3E50),
+          leading: Hero(
+            tag: 'badge_${voz.link}_${voz.naipe}',
+            child: _buildVoiceIcon(voz.naipe),
+          ),
+          title: Hero(
+            tag: 'title_voice_${item.titulo}_${voz.naipe}',
+            child: SizedBox(
+              child: Material(
+                type: MaterialType.transparency,
+                child: Text(
+                  voz.naipe,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                    color: Color(0xFF2C3E50),
+                  ),
+                ),
               ),
             ),
-            trailing: const Icon(
+          ),
+          trailing: Hero(
+            tag: 'play_button_${item.titulo}_${voz.naipe}',
+            child: const Icon(
               Icons.play_circle_fill_rounded,
               size: 32,
               color: Color(0xFF5E819D),
             ),
-            onTap: () => _handleVoiceTap(context, voz),
           ),
+          onTap: () => _handleVoiceTap(context, voz),
         ),
       ),
     );
