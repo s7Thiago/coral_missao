@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/repertorio_viewmodel.dart';
 import '../models/repertorio_model.dart';
+import '../services/audio_service.dart';
 import '../widgets/repertorio_list_item.dart';
+import '../widgets/player_overlay.dart';
 import '../utils/screen_utils.dart';
 
 class HomeView extends StatefulWidget {
@@ -45,39 +47,72 @@ class _HomeViewState extends State<HomeView> {
             return const Center(child: Text('Nenhum dado encontrado.'));
           }
 
-          return ListView.builder(
-            padding: const EdgeInsets.only(top: 8, bottom: 20),
-            itemCount: viewModel.repertorio.length,
-            itemBuilder: (context, index) {
-              final RepertorioItem item = viewModel.repertorio[index];
-              return Center(
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOutQuad,
-                  constraints: BoxConstraints(
-                    maxWidth: context.isDesktop
-                        ? 800
-                        : context.isTablet
-                        ? 700
-                        : MediaQuery.of(context).size.width,
-                  ),
-                  child: RepertorioListItem(
-                    item: item,
-                    isDownloaded: false,
-                    onPressed: () {
-                      // TODO: Implement download logic
-                      print('Download ${item.titulo}');
-                    },
-                    onPlayPressed: () {
-                      // TODO: Implement play logic
-                      print('Play ${item.titulo}');
-                    },
-                  ),
-                ),
-              );
-            },
+          final audioService = context.watch<AudioService>();
+
+          return Stack(
+            children: [
+              ListView.builder(
+                padding: EdgeInsets.only(top: 8, bottom: audioService.currentVoz != null ? 100 : 20),
+                itemCount: viewModel.repertorio.length,
+                itemBuilder: (context, index) {
+                  final RepertorioItem item = viewModel.repertorio[index];
+                  return Center(
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOutQuad,
+                      constraints: BoxConstraints(
+                        maxWidth: context.isDesktop
+                            ? 800
+                            : context.isTablet
+                            ? 700
+                            : MediaQuery.of(context).size.width,
+                      ),
+                      child: RepertorioListItem(
+                        item: item,
+                        isDownloaded: false,
+                        onPressed: () {
+                          // TODO: Implement download logic
+                          print('Download ${item.titulo}');
+                        },
+                        onPlayPressed: () {
+                          // TODO: Implement play logic
+                          print('Play ${item.titulo}');
+                        },
+                      ),
+                    ),
+                  );
+                },
+              ),
+              if (audioService.currentVoz != null && audioService.currentItem != null)
+                PlayerOverlay(item: audioService.currentItem!),
+            ],
           );
         },
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: 1, // Ensaios
+        backgroundColor: Colors.white,
+        indicatorColor: const Color(0xFFD3E4F2),
+        onDestinationSelected: (index) {
+          // Implement navigation later if needed
+        },
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: 'Início',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.menu_book_outlined),
+            selectedIcon: Icon(Icons.menu_book),
+            label: 'Ensaios',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: 'Perfil',
+          ),
+        ],
       ),
     );
   }

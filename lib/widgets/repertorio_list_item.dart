@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/repertorio_model.dart';
+import '../services/audio_service.dart';
 import '../utils/ui_utils.dart';
 import '../utils/app_colors.dart';
 import 'voice_selection_dialog.dart';
+import 'audio_visualizer.dart';
 
 class RepertorioListItem extends StatelessWidget {
   final RepertorioItem item;
@@ -104,12 +107,12 @@ class RepertorioListItem extends StatelessWidget {
                         ),
                         const SizedBox(height: 8),
                         // Pass 'item' to _buildBadge to access the full Voz object if needed,
-                        // but here we are mapping from item.vozes which provides Voz objects.
+                        // but currently _buildBadge only needs the string naipe.
                         Wrap(
                           spacing: 6,
-                          runSpacing: 4,
+                          runSpacing: 6,
                           children: item.vozes
-                              .map((voz) => _buildBadge(voz))
+                              .map((voz) => _buildBadge(context, voz))
                               .toList(),
                         ),
                       ],
@@ -120,7 +123,7 @@ class RepertorioListItem extends StatelessWidget {
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      _buildActionButton(),
+                      _buildActionButton(context),
                       if (!isDownloaded && item.tamanho.isNotEmpty) ...[
                         const SizedBox(height: 4),
                         Text(
@@ -142,24 +145,39 @@ class RepertorioListItem extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButton() {
+  Widget _buildActionButton(BuildContext context) {
+    final audioService = context.watch<AudioService>();
+    final isItemPlaying = audioService.currentVoz != null && 
+                          item.vozes.any((v) => v.link == audioService.currentVoz!.link) &&
+                          audioService.isPlaying;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: isDownloaded ? onPlayPressed : onPressed,
+        onTap: () {
+            if (isItemPlaying) {
+                audioService.pause();
+            } else if (audioService.currentVoz != null && item.vozes.any((v) => v.link == audioService.currentVoz!.link)) {
+                audioService.play();
+            } else {
+                isDownloaded ? onPlayPressed?.call() : onPressed?.call();
+            }
+        },
         borderRadius: BorderRadius.circular(16),
         child: Container(
           height: 48,
           width: 48,
           decoration: BoxDecoration(
-            color: isDownloaded
-                ? const Color(0xFF0D496F) // Dark blue for Play
+            color: (isDownloaded || isItemPlaying)
+                ? const Color(0xFF0D496F) // Dark blue for Play/Pause
                 : const Color(0xFFD8E4ED), // Light blue for Download
             borderRadius: BorderRadius.circular(16),
           ),
           child: Icon(
-            isDownloaded ? Icons.play_arrow_rounded : Icons.download_rounded,
-            color: isDownloaded
+            isItemPlaying
+                ? Icons.pause_rounded
+                : (isDownloaded ? Icons.play_arrow_rounded : Icons.download_rounded),
+            color: (isDownloaded || isItemPlaying)
                 ? Colors.white
                 : const Color(0xFF0D496F), // Dark blue icon for download
             size: 28,
@@ -169,25 +187,42 @@ class RepertorioListItem extends StatelessWidget {
     );
   }
 
-  Widget _buildBadge(Voz voz) {
+  Widget _buildBadge(BuildContext context, Voz voz) {
     final String voice = voz.naipe;
     final color = AppColors.getVoiceColor(voice);
+    
+    final audioService = context.watch<AudioService>();
+    final isCurrentVoice = audioService.currentVoz?.link == voz.link;
+    final isPlaying = isCurrentVoice && audioService.isPlaying;
 
     return Hero(
       tag: 'badge_${voz.link}_${voz.naipe}',
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: color,
+          color: isCurrentVoice ? const Color(0xFF16476B) : color,
           borderRadius: BorderRadius.circular(20),
+          border: isCurrentVoice ? Border.all(color: Colors.white, width: 1.5) : null,
         ),
-        child: Text(
-          voice,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isCurrentVoice && isPlaying) ...[
+              AudioVisualizer(color: Colors.white, isPlaying: true, size: 10),
+              const SizedBox(width: 4),
+            ] else if (isCurrentVoice && !isPlaying) ...[
+              const Icon(Icons.pause, size: 10, color: Colors.white),
+              const SizedBox(width: 4),
+            ],
+            Text(
+              voice,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ),
       ),
     );

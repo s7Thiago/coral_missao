@@ -25,12 +25,24 @@ class MusicPlayerView extends StatelessWidget {
     final playbackSpeed = audioService.playbackSpeed;
     final currentVoz = audioService.currentVoz;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F9FA),
-      body: SafeArea(
+    return Material(
+      color: const Color(0xFFF5F9FA),
+      child: SafeArea(
         child: Column(
           children: [
-            const SizedBox(height: 16),
+            // Drag handle indicator
+            Center(
+              child: Container(
+                margin: const EdgeInsets.only(top: 12, bottom: 4),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFB0C4DE),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
 
             // Header
             Text(
@@ -237,7 +249,7 @@ class MusicPlayerView extends StatelessWidget {
                     padding: const EdgeInsets.only(right: 8.0),
                     child: InkWell(
                       onTap: () =>
-                          audioService.playVoz(voz, keepPosition: true),
+                          audioService.playVoz(voz, item, keepPosition: true),
                       borderRadius: BorderRadius.circular(20),
                       child: Hero(
                         tag: 'title_voice_${item.titulo}_${voz.naipe}',
@@ -283,33 +295,6 @@ class MusicPlayerView extends StatelessWidget {
             const SizedBox(height: 32),
           ],
         ),
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: 1, // Ensaios
-        backgroundColor: Colors.white,
-        indicatorColor: const Color(0xFFD3E4F2),
-        onDestinationSelected: (index) {
-          if (index == 0) {
-            Navigator.of(context).pop();
-          }
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Início',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.menu_book_outlined),
-            selectedIcon: Icon(Icons.menu_book),
-            label: 'Ensaios',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Perfil',
-          ),
-        ],
       ),
     );
   }

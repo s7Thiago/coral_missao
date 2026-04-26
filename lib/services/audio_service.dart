@@ -26,17 +26,18 @@ class MyAudioSource extends StreamAudioSource {
 
 class AudioService extends ChangeNotifier {
   final AudioPlayer _player = AudioPlayer();
-  final String _boxName = 'kitsCoral';
-
+  
+  Voz? currentVoz;
+  RepertorioItem? currentItem;
+  bool isPlaying = false;
   Duration position = Duration.zero;
   Duration duration = Duration.zero;
-  bool isPlaying = false;
   double playbackSpeed = 1.0;
-  Voz? currentVoz;
-
   bool isDownloading = false;
   double downloadProgress = 0.0;
-  String downloadUrl = '';
+  String downloadUrl = "";
+
+  final String _boxName = 'kitsCoral';
 
   AudioService() {
     _player.positionStream.listen((pos) {
@@ -65,8 +66,17 @@ class AudioService extends ChangeNotifier {
     _player.play();
   }
 
-  void stop() {
-    _player.stop();
+  // Pára a reprodução
+  Future<void> stop() async {
+    await _player.stop();
+    notifyListeners();
+  }
+
+  // Pára a reprodução e limpa a voz atual (para fechar o mini-player)
+  Future<void> stopAndClear() async {
+    await _player.stop();
+    currentVoz = null;
+    notifyListeners();
   }
 
   void setVolume(double value) {
@@ -83,12 +93,20 @@ class AudioService extends ChangeNotifier {
     _player.seek(pos);
   }
 
-  void playVoz(Voz voz, {bool keepPosition = false}) {
-    if (currentVoz == voz) return;
-    Duration? startPos = (keepPosition && position > Duration.zero) ? position : null;
+  void playVoz(Voz voz, RepertorioItem item, {bool keepPosition = false}) {
+    // Se for a mesma voz, não faz nada
+    if (currentVoz?.link == voz.link) return;
+
+    Duration? startPosition;
+    if (keepPosition && _player.playing) {
+      startPosition = _player.position;
+    }
+
     currentVoz = voz;
+    currentItem = item;
     notifyListeners();
-    tocarAudio(voz.link, startPosition: startPos);
+
+    tocarAudio(voz.link, startPosition: startPosition);
   }
 
   void togglePlayPause() {
