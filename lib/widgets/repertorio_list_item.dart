@@ -201,34 +201,36 @@ class RepertorioListItem extends StatelessWidget {
 
     return Hero(
       tag: 'badge_${voz.link}_${voz.naipe}',
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(
-          color: isCurrentVoice ? const Color(0xFF16476B) : color,
-          borderRadius: BorderRadius.circular(20),
-          border: isCurrentVoice
-              ? Border.all(color: Colors.white, width: 1.5)
-              : null,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (isCurrentVoice && isPlaying) ...[
-              AudioVisualizer(color: Colors.white, isPlaying: true, size: 10),
-              const SizedBox(width: 4),
-            ] else if (isCurrentVoice && !isPlaying) ...[
-              const Icon(Icons.pause, size: 10, color: Colors.white),
-              const SizedBox(width: 4),
-            ],
-            Text(
-              voice,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
+      child: FittedBox(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: isCurrentVoice ? const Color(0xFF16476B) : color,
+            borderRadius: BorderRadius.circular(20),
+            border: isCurrentVoice
+                ? Border.all(color: Colors.white, width: 1.5)
+                : null,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (isCurrentVoice && isPlaying) ...[
+                AudioVisualizer(color: Colors.white, isPlaying: true, size: 10),
+                const SizedBox(width: 4),
+              ] else if (isCurrentVoice && !isPlaying) ...[
+                const Icon(Icons.pause, size: 10, color: Colors.white),
+                const SizedBox(width: 4),
+              ],
+              Text(
+                voice,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

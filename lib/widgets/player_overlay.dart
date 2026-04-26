@@ -15,7 +15,8 @@ class PlayerOverlay extends StatefulWidget {
   State<PlayerOverlay> createState() => _PlayerOverlayState();
 }
 
-class _PlayerOverlayState extends State<PlayerOverlay> with SingleTickerProviderStateMixin {
+class _PlayerOverlayState extends State<PlayerOverlay>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
@@ -77,13 +78,17 @@ class _PlayerOverlayState extends State<PlayerOverlay> with SingleTickerProvider
       animation: _controller,
       builder: (context, child) {
         final progress = _controller.value;
-        
+
         // Minimized layout parameters
         const double pillHeight = 64.0;
         const double pillBottomMargin = 96.0; // Above NavigationBar
-        const double pillSideMargin = 16.0;
+        const double pillSideMargin = 160.0;
 
-        final double currentHeight = lerpDouble(pillHeight, screenHeight, progress)!;
+        final double currentHeight = lerpDouble(
+          pillHeight,
+          screenHeight,
+          progress,
+        )!;
         final double currentBottom = lerpDouble(pillBottomMargin, 0, progress)!;
         final double currentSide = lerpDouble(pillSideMargin, 0, progress)!;
         final double currentRadius = lerpDouble(32, 0, progress)!;
@@ -104,7 +109,11 @@ class _PlayerOverlayState extends State<PlayerOverlay> with SingleTickerProvider
               child: Container(
                 decoration: BoxDecoration(
                   // Background color fades from the pill's color to the full player's color
-                  color: Color.lerp(const Color(0xFF1B3B5A), const Color(0xFFF5F9FA), progress),
+                  color: Color.lerp(
+                    const Color(0xFF1B3B5A),
+                    const Color(0xFFF5F9FA),
+                    progress,
+                  ),
                 ),
                 child: OverflowBox(
                   maxHeight: screenHeight,
@@ -125,7 +134,7 @@ class _PlayerOverlayState extends State<PlayerOverlay> with SingleTickerProvider
                             ),
                           ),
                         ),
-                      
+
                       // Mini Pill Player View
                       if (progress < 1)
                         Opacity(
