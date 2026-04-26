@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../models/repertorio_model.dart';
 import '../utils/app_colors.dart';
 import '../utils/screen_utils.dart';
+import 'download_indicator.dart';
 
 class VoiceSelectionDialog extends StatelessWidget {
   final RepertorioItem item;
@@ -14,7 +15,7 @@ class VoiceSelectionDialog extends StatelessWidget {
   const VoiceSelectionDialog({super.key, required this.item});
 
   void _handleVoiceTap(BuildContext context, Voz voz) {
-    context.read<AudioService>().playVoz(voz);
+    context.read<AudioService>().playVoz(voz, keepPosition: false);
     customLauncher(
       context: context,
       target: MusicPlayerView(item: item),
@@ -92,6 +93,7 @@ class VoiceSelectionDialog extends StatelessWidget {
                     style: TextStyle(fontSize: 14, color: Color(0xFF666666)),
                   ),
                   const SizedBox(height: 16),
+                  DownloadIndicator(currentVoz: context.watch<AudioService>().currentVoz),
                   Column(
                     children: item.vozes
                         .map((voz) => _buildVoiceItem(context, voz))

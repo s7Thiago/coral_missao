@@ -83,11 +83,12 @@ class AudioService extends ChangeNotifier {
     _player.seek(pos);
   }
 
-  void playVoz(Voz voz) {
+  void playVoz(Voz voz, {bool keepPosition = false}) {
     if (currentVoz == voz) return;
+    Duration? startPos = (keepPosition && position > Duration.zero) ? position : null;
     currentVoz = voz;
     notifyListeners();
-    tocarAudio(voz.link);
+    tocarAudio(voz.link, startPosition: startPos);
   }
 
   void togglePlayPause() {
@@ -113,7 +114,7 @@ class AudioService extends ChangeNotifier {
   }
 
   // Função para tocar (Gerencia o download automático)
-  Future<void> tocarAudio(String url) async {
+  Future<void> tocarAudio(String url, {Duration? startPosition}) async {
     try {
       print("Verificando cache ou baixando: $url");
       var audioBox = Hive.box(_boxName);
@@ -124,23 +125,27 @@ class AudioService extends ChangeNotifier {
       if (audioBytes != null) {
         print("Áudio encontrado no cache!");
         await _player.stop();
-        await _player.setAudioSource(MyAudioSource(audioBytes, url));
+        await _player.setAudioSource(MyAudioSource(audioBytes, url), initialPosition: startPosition);
         _player.play();
       } else {
-        // 2. Toca instantaneamente via streaming (se possível)
-        try {
-          await _player.stop();
-          await _player.setUrl(url);
-          _player.play();
-        } catch (e) {
-          print("Falha ao iniciar streaming instantâneo: $e");
-        }
-
-        // 3. E inicia o download em background com progresso para salvar offline
+        // Notifica UI que download vai começar (evita travamento percebido e exibe indicador instantaneamente)
         isDownloading = true;
         downloadProgress = 0.0;
         downloadUrl = url;
         notifyListeners();
+
+        // 2. Toca instantaneamente via streaming sem travar o início do download visual
+        Future.microtask(() async {
+          try {
+            await _player.stop();
+            await _player.setAudioSource(AudioSource.uri(Uri.parse(url)), initialPosition: startPosition);
+            _player.play();
+          } catch (e) {
+            print("Falha ao iniciar streaming instantâneo: $e");
+          }
+        });
+
+        // 3. Inicia o download em background com progresso para salvar offline
 
         try {
           var request = http.Request('GET', Uri.parse(url));
@@ -165,7 +170,7 @@ class AudioService extends ChangeNotifier {
             // Se o streaming falhou antes, toca agora que baixou
             if (_player.playing == false && currentVoz?.link == url) {
               await _player.stop();
-              await _player.setAudioSource(MyAudioSource(audioBytes, url));
+              await _player.setAudioSource(MyAudioSource(audioBytes, url), initialPosition: startPosition);
               _player.play();
             }
           } else {
