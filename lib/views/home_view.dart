@@ -27,31 +27,31 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Repertório Coral'),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-      ),
-      body: Consumer<RepertorioViewModel>(
-        builder: (context, viewModel, child) {
-          if (viewModel.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    final audioService = context.watch<AudioService>();
 
-          if (viewModel.error != null) {
-            return Center(child: Text('Erro: ${viewModel.error}'));
-          }
+    return Stack(
+      children: [
+        Scaffold(
+          appBar: AppBar(
+            title: const Text('Repertório Coral'),
+            centerTitle: true,
+            backgroundColor: Colors.transparent,
+          ),
+          body: Consumer<RepertorioViewModel>(
+            builder: (context, viewModel, child) {
+              if (viewModel.isLoading) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-          if (viewModel.repertorio.isEmpty) {
-            return const Center(child: Text('Nenhum dado encontrado.'));
-          }
+              if (viewModel.error != null) {
+                return Center(child: Text('Erro: ${viewModel.error}'));
+              }
 
-          final audioService = context.watch<AudioService>();
+              if (viewModel.repertorio.isEmpty) {
+                return const Center(child: Text('Nenhum dado encontrado.'));
+              }
 
-          return Stack(
-            children: [
-              ListView.builder(
+              return ListView.builder(
                 padding: EdgeInsets.only(top: 8, bottom: audioService.currentVoz != null ? 100 : 20),
                 itemCount: viewModel.repertorio.length,
                 itemBuilder: (context, index) {
@@ -82,14 +82,10 @@ class _HomeViewState extends State<HomeView> {
                     ),
                   );
                 },
-              ),
-              if (audioService.currentVoz != null && audioService.currentItem != null)
-                PlayerOverlay(item: audioService.currentItem!),
-            ],
-          );
-        },
-      ),
-      bottomNavigationBar: NavigationBar(
+              );
+            },
+          ),
+          bottomNavigationBar: NavigationBar(
         selectedIndex: 1, // Ensaios
         backgroundColor: Colors.white,
         indicatorColor: const Color(0xFFD3E4F2),
@@ -114,6 +110,10 @@ class _HomeViewState extends State<HomeView> {
           ),
         ],
       ),
+        ),
+        if (audioService.currentVoz != null && audioService.currentItem != null)
+          PlayerOverlay(item: audioService.currentItem!),
+      ],
     );
   }
 }

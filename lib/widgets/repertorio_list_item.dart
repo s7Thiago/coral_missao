@@ -147,21 +147,23 @@ class RepertorioListItem extends StatelessWidget {
 
   Widget _buildActionButton(BuildContext context) {
     final audioService = context.watch<AudioService>();
-    final isItemPlaying = audioService.currentVoz != null && 
-                          item.vozes.any((v) => v.link == audioService.currentVoz!.link) &&
-                          audioService.isPlaying;
+    final isItemPlaying =
+        audioService.currentVoz != null &&
+        item.vozes.any((v) => v.link == audioService.currentVoz!.link) &&
+        audioService.isPlaying;
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-            if (isItemPlaying) {
-                audioService.pause();
-            } else if (audioService.currentVoz != null && item.vozes.any((v) => v.link == audioService.currentVoz!.link)) {
-                audioService.play();
-            } else {
-                isDownloaded ? onPlayPressed?.call() : onPressed?.call();
-            }
+          if (isItemPlaying) {
+            audioService.pause();
+          } else if (audioService.currentVoz != null &&
+              item.vozes.any((v) => v.link == audioService.currentVoz!.link)) {
+            audioService.play();
+          } else {
+            isDownloaded ? onPlayPressed?.call() : onPressed?.call();
+          }
         },
         borderRadius: BorderRadius.circular(16),
         child: Container(
@@ -176,7 +178,9 @@ class RepertorioListItem extends StatelessWidget {
           child: Icon(
             isItemPlaying
                 ? Icons.pause_rounded
-                : (isDownloaded ? Icons.play_arrow_rounded : Icons.download_rounded),
+                : (isDownloaded
+                      ? Icons.play_arrow_rounded
+                      : Icons.download_rounded),
             color: (isDownloaded || isItemPlaying)
                 ? Colors.white
                 : const Color(0xFF0D496F), // Dark blue icon for download
@@ -190,7 +194,7 @@ class RepertorioListItem extends StatelessWidget {
   Widget _buildBadge(BuildContext context, Voz voz) {
     final String voice = voz.naipe;
     final color = AppColors.getVoiceColor(voice);
-    
+
     final audioService = context.watch<AudioService>();
     final isCurrentVoice = audioService.currentVoz?.link == voz.link;
     final isPlaying = isCurrentVoice && audioService.isPlaying;
@@ -202,7 +206,9 @@ class RepertorioListItem extends StatelessWidget {
         decoration: BoxDecoration(
           color: isCurrentVoice ? const Color(0xFF16476B) : color,
           borderRadius: BorderRadius.circular(20),
-          border: isCurrentVoice ? Border.all(color: Colors.white, width: 1.5) : null,
+          border: isCurrentVoice
+              ? Border.all(color: Colors.white, width: 1.5)
+              : null,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/repertorio_model.dart';
@@ -14,50 +15,51 @@ class PlayerOverlay extends StatefulWidget {
   State<PlayerOverlay> createState() => _PlayerOverlayState();
 }
 
-class _PlayerOverlayState extends State<PlayerOverlay> {
-  final DraggableScrollableController _controller = DraggableScrollableController();
-  bool _isExpanded = false;
+class _PlayerOverlayState extends State<PlayerOverlay> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
-    _controller.addListener(_onScroll);
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
   }
 
   @override
   void dispose() {
-    _controller.removeListener(_onScroll);
     _controller.dispose();
     super.dispose();
   }
 
-  void _onScroll() {
-    if (_controller.isAttached) {
-      final size = _controller.size;
-      // If expanded more than 40% of the screen, we consider it expanded
-      if (size > 0.4 && !_isExpanded) {
-        setState(() => _isExpanded = true);
-      } else if (size <= 0.4 && _isExpanded) {
-        setState(() => _isExpanded = false);
-      }
+  void _toggleExpand() {
+    if (_controller.isDismissed) {
+      _controller.forward();
+    } else {
+      _controller.reverse();
     }
   }
 
-  void _toggleExpand() {
-    if (_controller.isAttached) {
-      if (_isExpanded) {
-        _controller.animateTo(
-          0.12, // Approximate min size
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
-      } else {
-        _controller.animateTo(
-          1.0,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
-      }
+  void _handleVerticalUpdate(DragUpdateDetails details) {
+    // screenHeight might be slightly different if we don't have it, but we can use context.size
+    final height = MediaQuery.of(context).size.height;
+    _controller.value -= details.primaryDelta! / height;
+  }
+
+  void _handleVerticalEnd(DragEndDetails details) {
+    if (_controller.isDismissed || _controller.isCompleted) return;
+
+    if (details.primaryVelocity! < -300) {
+      // Fling up
+      _controller.forward();
+    } else if (details.primaryVelocity! > 300) {
+      // Fling down
+      _controller.reverse();
+    } else if (_controller.value > 0.5) {
+      _controller.forward();
+    } else {
+      _controller.reverse();
     }
   }
 
@@ -68,62 +70,86 @@ class _PlayerOverlayState extends State<PlayerOverlay> {
 
     if (currentVoz == null) return const SizedBox.shrink();
 
-    // Calculate min size based on screen height
     final screenHeight = MediaQuery.of(context).size.height;
-    // MiniPlayer is 72 height + 16 margins = 88. Let's add a bit for safety.
-    final minSize = 90 / screenHeight;
+    final screenWidth = MediaQuery.of(context).size.width;
 
-    return DraggableScrollableSheet(
-      controller: _controller,
-      initialChildSize: minSize,
-      minChildSize: minSize,
-      maxChildSize: 1.0,
-      snap: true,
-      snapSizes: [minSize, 1.0],
-      builder: (context, scrollController) {
-        return Container(
-          decoration: BoxDecoration(
-            color: _isExpanded ? const Color(0xFFF5F9FA) : Colors.transparent,
-            borderRadius: _isExpanded 
-              ? const BorderRadius.vertical(top: Radius.circular(24)) 
-              : null,
-            boxShadow: _isExpanded 
-              ? [const BoxShadow(color: Colors.black26, blurRadius: 10)] 
-              : null,
-          ),
-          child: Stack(
-            children: [
-              // We use SingleChildScrollView to make it scrollable as required by DraggableScrollableSheet
-              SingleChildScrollView(
-                controller: scrollController,
-                physics: const ClampingScrollPhysics(),
-                child: SizedBox(
-                  height: screenHeight,
-                  child: AnimatedOpacity(
-                    duration: const Duration(milliseconds: 200),
-                    opacity: _isExpanded ? 1.0 : 0.0,
-                    child: IgnorePointer(
-                      ignoring: !_isExpanded,
-                      child: MusicPlayerView(item: widget.item),
-                    ),
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        final progress = _controller.value;
+        
+        // Minimized layout parameters
+        const double pillHeight = 64.0;
+        const double pillBottomMargin = 96.0; // Above NavigationBar
+        const double pillSideMargin = 16.0;
+
+        final double currentHeight = lerpDouble(pillHeight, screenHeight, progress)!;
+        final double currentBottom = lerpDouble(pillBottomMargin, 0, progress)!;
+        final double currentSide = lerpDouble(pillSideMargin, 0, progress)!;
+        final double currentRadius = lerpDouble(32, 0, progress)!;
+
+        return Positioned(
+          bottom: currentBottom,
+          left: currentSide,
+          right: currentSide,
+          height: currentHeight,
+          child: GestureDetector(
+            onVerticalDragUpdate: _handleVerticalUpdate,
+            onVerticalDragEnd: _handleVerticalEnd,
+            child: Material(
+              color: Colors.transparent,
+              elevation: lerpDouble(8, 0, progress)!,
+              borderRadius: BorderRadius.circular(currentRadius),
+              clipBehavior: Clip.antiAlias,
+              child: Container(
+                decoration: BoxDecoration(
+                  // Background color fades from the pill's color to the full player's color
+                  color: Color.lerp(const Color(0xFF1B3B5A), const Color(0xFFF5F9FA), progress),
+                ),
+                child: OverflowBox(
+                  maxHeight: screenHeight,
+                  maxWidth: screenWidth,
+                  alignment: Alignment.bottomCenter,
+                  child: Stack(
+                    children: [
+                      // Full Screen Player View
+                      if (progress > 0)
+                        Opacity(
+                          opacity: progress,
+                          child: IgnorePointer(
+                            ignoring: progress < 1.0,
+                            child: SizedBox(
+                              height: screenHeight,
+                              width: screenWidth,
+                              child: MusicPlayerView(item: widget.item),
+                            ),
+                          ),
+                        ),
+                      
+                      // Mini Pill Player View
+                      if (progress < 1)
+                        Opacity(
+                          opacity: 1.0 - progress,
+                          child: IgnorePointer(
+                            ignoring: progress > 0.0,
+                            child: SizedBox(
+                              height: pillHeight,
+                              width: screenWidth - (pillSideMargin * 2),
+                              child: Align(
+                                alignment: Alignment.center,
+                                child: MiniPlayer(
+                                  item: widget.item,
+                                  onTap: _toggleExpand,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ),
-              
-              // Mini Player sits on top and fades out when expanding
-              if (!_isExpanded)
-                 AnimatedOpacity(
-                  duration: const Duration(milliseconds: 200),
-                  opacity: _isExpanded ? 0.0 : 1.0,
-                  child: IgnorePointer(
-                    ignoring: _isExpanded,
-                    child: MiniPlayer(
-                      item: widget.item,
-                      onTap: _toggleExpand,
-                    ),
-                  ),
-                ),
-            ],
+            ),
           ),
         );
       },

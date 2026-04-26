@@ -22,13 +22,13 @@ class MiniPlayer extends StatelessWidget {
 
     return GestureDetector(
       onTap: onTap,
+      behavior: HitTestBehavior.opaque,
       child: Container(
-        height: 72,
-        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        height: 64,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
           color: const Color(0xFF1B3B5A),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(32), // Pill shape
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.2),
