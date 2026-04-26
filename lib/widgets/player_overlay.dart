@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/repertorio_model.dart';
 import '../services/audio_service.dart';
 import '../views/music_player_view.dart';
+import '../utils/screen_utils.dart';
 import 'mini_player.dart';
 
 class PlayerOverlay extends StatefulWidget {
@@ -104,7 +105,7 @@ class _PlayerOverlayState extends State<PlayerOverlay>
             final progress = _controller.value;
 
             const double pillBottomMargin = 96.0;
-            const double pillSideMargin = 160.0;
+            final double pillSideMargin = context.isMobile ? 30.0 : 160.0;
 
             final double currentHeight = lerpDouble(
               pillHeight,
