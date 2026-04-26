@@ -34,6 +34,10 @@ class AudioService extends ChangeNotifier {
   double playbackSpeed = 1.0;
   Voz? currentVoz;
 
+  bool isDownloading = false;
+  double downloadProgress = 0.0;
+  String downloadUrl = '';
+
   AudioService() {
     _player.positionStream.listen((pos) {
       position = pos ?? Duration.zero;
@@ -117,25 +121,64 @@ class AudioService extends ChangeNotifier {
       // 1. Tenta recuperar do cache (Hive)
       Uint8List? audioBytes = audioBox.get(url);
 
-      if (audioBytes == null) {
-        // 2. Se não estiver no cache, baixa via HTTP
-        print("Baixando áudio...");
-        var response = await http.get(Uri.parse(url));
-        if (response.statusCode == 200) {
-          audioBytes = response.bodyBytes;
-          // Salva no Hive para uso futuro
-          await audioBox.put(url, audioBytes);
-        } else {
-          throw Exception("Falha no download (Status: ${response.statusCode})");
-        }
-      } else {
+      if (audioBytes != null) {
         print("Áudio encontrado no cache!");
-      }
+        await _player.stop();
+        await _player.setAudioSource(MyAudioSource(audioBytes, url));
+        _player.play();
+      } else {
+        // 2. Toca instantaneamente via streaming (se possível)
+        try {
+          await _player.stop();
+          await _player.setUrl(url);
+          _player.play();
+        } catch (e) {
+          print("Falha ao iniciar streaming instantâneo: $e");
+        }
 
-      // 3. Toca usando a fonte de áudio customizada baseada em bytes
-      await _player.stop();
-      await _player.setAudioSource(MyAudioSource(audioBytes, url));
-      _player.play();
+        // 3. E inicia o download em background com progresso para salvar offline
+        isDownloading = true;
+        downloadProgress = 0.0;
+        downloadUrl = url;
+        notifyListeners();
+
+        try {
+          var request = http.Request('GET', Uri.parse(url));
+          var response = await http.Client().send(request);
+
+          if (response.statusCode == 200) {
+            int totalBytes = response.contentLength ?? 0;
+            List<int> bytes = [];
+
+            await for (var chunk in response.stream) {
+              bytes.addAll(chunk);
+              if (totalBytes > 0) {
+                downloadProgress = bytes.length / totalBytes;
+                notifyListeners();
+              }
+            }
+
+            audioBytes = Uint8List.fromList(bytes);
+            await audioBox.put(url, audioBytes);
+            print("Áudio salvo no cache com sucesso!");
+            
+            // Se o streaming falhou antes, toca agora que baixou
+            if (_player.playing == false && currentVoz?.link == url) {
+              await _player.stop();
+              await _player.setAudioSource(MyAudioSource(audioBytes, url));
+              _player.play();
+            }
+          } else {
+            throw Exception("Status: ${response.statusCode}");
+          }
+        } catch (e) {
+          print("Erro ao baixar em background: $e");
+        } finally {
+          isDownloading = false;
+          downloadProgress = 0.0;
+          notifyListeners();
+        }
+      }
     } catch (e) {
       print("Erro ao usar cache ou baixar (provável CORS ou erro de rede): $e");
       print("Tentando reprodução direta via streaming...");
