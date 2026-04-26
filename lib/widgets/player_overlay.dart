@@ -65,6 +65,21 @@ class _PlayerOverlayState extends State<PlayerOverlay>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final audioService = context.read<AudioService>();
+    if (audioService.shouldExpandPlayer) {
+      audioService.shouldExpandPlayer = false;
+      // Agenda para após o build para não chamar setState durante o build
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _controller.isDismissed) {
+          _controller.forward();
+        }
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final audioService = context.watch<AudioService>();
     final currentVoz = audioService.currentVoz;

@@ -1,14 +1,12 @@
 import 'package:coral_missao/services/audio_service.dart';
-import 'package:coral_missao/utils/ui_utils.dart';
-import 'package:coral_missao/views/music_player_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/repertorio_model.dart';
 import '../utils/app_colors.dart';
 import '../utils/screen_utils.dart';
-import 'download_indicator.dart';
 import 'audio_visualizer.dart';
+import 'download_indicator.dart';
 
 class VoiceSelectionDialog extends StatelessWidget {
   final RepertorioItem item;
@@ -118,9 +116,15 @@ class VoiceSelectionDialog extends StatelessWidget {
     final isCurrentVoice = audioService.currentVoz == voz;
     final isPlaying = isCurrentVoice && audioService.isPlaying;
 
-    final bgColor = isCurrentVoice ? const Color(0xFFE6F0F9) : const Color(0xFFF5F8FA);
-    final borderColor = isCurrentVoice ? const Color(0xFF16476B) : const Color(0xFFE1E8ED);
-    final iconColor = isCurrentVoice ? const Color(0xFF16476B) : const Color(0xFF5E819D);
+    final bgColor = isCurrentVoice
+        ? const Color(0xFFE6F0F9)
+        : const Color(0xFFF5F8FA);
+    final borderColor = isCurrentVoice
+        ? const Color(0xFF16476B)
+        : const Color(0xFFE1E8ED);
+    final iconColor = isCurrentVoice
+        ? const Color(0xFF16476B)
+        : const Color(0xFF5E819D);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -128,7 +132,10 @@ class VoiceSelectionDialog extends StatelessWidget {
         color: bgColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: borderColor, width: isCurrentVoice ? 1.5 : 1.0),
+          side: BorderSide(
+            color: borderColor,
+            width: isCurrentVoice ? 1.5 : 1.0,
+          ),
         ),
         clipBehavior: Clip.antiAlias,
         child: ListTile(
@@ -148,7 +155,9 @@ class VoiceSelectionDialog extends StatelessWidget {
                 child: Text(
                   voz.naipe,
                   style: TextStyle(
-                    fontWeight: isCurrentVoice ? FontWeight.bold : FontWeight.w600,
+                    fontWeight: isCurrentVoice
+                        ? FontWeight.bold
+                        : FontWeight.w600,
                     fontSize: 16,
                     color: const Color(0xFF2C3E50),
                   ),
@@ -160,9 +169,21 @@ class VoiceSelectionDialog extends StatelessWidget {
             tag: 'play_button_${item.titulo}_${voz.naipe}',
             child: isCurrentVoice
                 ? (isPlaying
-                    ? AudioVisualizer(color: iconColor, isPlaying: true, size: 28)
-                    : Icon(Icons.pause_circle_filled_rounded, size: 32, color: iconColor))
-                : Icon(Icons.play_circle_fill_rounded, size: 32, color: iconColor),
+                      ? AudioVisualizer(
+                          color: iconColor,
+                          isPlaying: true,
+                          size: 28,
+                        )
+                      : Icon(
+                          Icons.pause_circle_filled_rounded,
+                          size: 32,
+                          color: iconColor,
+                        ))
+                : Icon(
+                    Icons.play_circle_fill_rounded,
+                    size: 32,
+                    color: iconColor,
+                  ),
           ),
           onTap: () => _handleVoiceTap(context, voz),
         ),
