@@ -36,6 +36,30 @@ class _HomeViewState extends State<HomeView> {
             title: const Text('Repertório Coral'),
             centerTitle: true,
             backgroundColor: Colors.transparent,
+            actions: [
+              Consumer<RepertorioViewModel>(
+                builder: (context, viewModel, _) {
+                  if (!viewModel.isUsingLocalFallback) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: Tooltip(
+                      message: 'Sem conexão — exibindo repertório salvo',
+                      child: Chip(
+                        avatar: const Icon(Icons.wifi_off_rounded, size: 14, color: Colors.white),
+                        label: const Text(
+                          'Offline',
+                          style: TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600),
+                        ),
+                        backgroundColor: const Color(0xFF5E819D),
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
           ),
           body: Consumer<RepertorioViewModel>(
             builder: (context, viewModel, child) {

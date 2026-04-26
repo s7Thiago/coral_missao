@@ -89,92 +89,104 @@ class _PlayerOverlayState extends State<PlayerOverlay>
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        final progress = _controller.value;
+    final bool isDownloadingCurrent =
+        audioService.isDownloading &&
+        audioService.downloadUrl == audioService.currentVoz?.link;
 
-        // Minimized layout parameters
-        const double pillHeight = 64.0;
-        const double pillBottomMargin = 96.0; // Above NavigationBar
-        const double pillSideMargin = 160.0;
+    return TweenAnimationBuilder<double>(
+      tween: Tween(end: isDownloadingCurrent ? 200.0 : 64.0),
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      builder: (context, pillHeight, _) {
+        return AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            final progress = _controller.value;
 
-        final double currentHeight = lerpDouble(
-          pillHeight,
-          screenHeight,
-          progress,
-        )!;
-        final double currentBottom = lerpDouble(pillBottomMargin, 0, progress)!;
-        final double currentSide = lerpDouble(pillSideMargin, 0, progress)!;
-        final double currentRadius = lerpDouble(32, 0, progress)!;
+            const double pillBottomMargin = 96.0;
+            const double pillSideMargin = 160.0;
 
-        return Positioned(
-          bottom: currentBottom,
-          left: currentSide,
-          right: currentSide,
-          height: currentHeight,
-          child: GestureDetector(
-            onVerticalDragUpdate: _handleVerticalUpdate,
-            onVerticalDragEnd: _handleVerticalEnd,
-            child: Material(
-              color: Colors.transparent,
-              elevation: lerpDouble(8, 0, progress)!,
-              borderRadius: BorderRadius.circular(currentRadius),
-              clipBehavior: Clip.antiAlias,
-              child: Container(
-                decoration: BoxDecoration(
-                  // Background color fades from the pill's color to the full player's color
-                  color: Color.lerp(
-                    const Color(0xFF1B3B5A),
-                    const Color(0xFFF5F9FA),
-                    progress,
-                  ),
-                ),
-                child: OverflowBox(
-                  maxHeight: screenHeight,
-                  maxWidth: screenWidth,
-                  alignment: Alignment.bottomCenter,
-                  child: Stack(
-                    children: [
-                      // Full Screen Player View
-                      if (progress > 0)
-                        Opacity(
-                          opacity: progress,
-                          child: IgnorePointer(
-                            ignoring: progress < 1.0,
-                            child: SizedBox(
-                              height: screenHeight,
-                              width: screenWidth,
-                              child: MusicPlayerView(item: widget.item),
-                            ),
-                          ),
-                        ),
+            final double currentHeight = lerpDouble(
+              pillHeight,
+              screenHeight,
+              progress,
+            )!;
+            final double currentBottom = lerpDouble(
+              pillBottomMargin,
+              0,
+              progress,
+            )!;
+            final double currentSide = lerpDouble(pillSideMargin, 0, progress)!;
+            final double currentRadius = lerpDouble(32, 0, progress)!;
 
-                      // Mini Pill Player View
-                      if (progress < 1)
-                        Opacity(
-                          opacity: 1.0 - progress,
-                          child: IgnorePointer(
-                            ignoring: progress > 0.0,
-                            child: SizedBox(
-                              height: pillHeight,
-                              width: screenWidth - (pillSideMargin * 2),
-                              child: Align(
-                                alignment: Alignment.center,
-                                child: MiniPlayer(
-                                  item: widget.item,
-                                  onTap: _toggleExpand,
+            return Positioned(
+              bottom: currentBottom,
+              left: currentSide,
+              right: currentSide,
+              height: currentHeight,
+              child: GestureDetector(
+                onVerticalDragUpdate: _handleVerticalUpdate,
+                onVerticalDragEnd: _handleVerticalEnd,
+                child: Material(
+                  color: Colors.transparent,
+                  elevation: lerpDouble(8, 0, progress)!,
+                  borderRadius: BorderRadius.circular(currentRadius),
+                  clipBehavior: Clip.antiAlias,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Color.lerp(
+                        const Color(0xFF1B3B5A),
+                        const Color(0xFFF5F9FA),
+                        progress,
+                      ),
+                    ),
+                    child: OverflowBox(
+                      maxHeight: screenHeight,
+                      maxWidth: screenWidth,
+                      alignment: Alignment.bottomCenter,
+                      child: Stack(
+                        children: [
+                          // Full Screen Player View
+                          if (progress > 0)
+                            Opacity(
+                              opacity: progress,
+                              child: IgnorePointer(
+                                ignoring: progress < 1.0,
+                                child: SizedBox(
+                                  height: screenHeight,
+                                  width: screenWidth,
+                                  child: MusicPlayerView(item: widget.item),
                                 ),
                               ),
                             ),
-                          ),
-                        ),
-                    ],
+
+                          // Mini Pill Player View
+                          if (progress < 1)
+                            Opacity(
+                              opacity: 1.0 - progress,
+                              child: IgnorePointer(
+                                ignoring: progress > 0.0,
+                                child: SizedBox(
+                                  height: pillHeight,
+                                  width: screenWidth - (pillSideMargin * 2),
+                                  child: Align(
+                                    alignment: Alignment.center,
+                                    child: MiniPlayer(
+                                      item: widget.item,
+                                      onTap: _toggleExpand,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );

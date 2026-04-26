@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/repertorio_model.dart';
 import '../services/audio_service.dart';
 import '../utils/app_colors.dart';
+import 'download_indicator.dart';
 
 class MiniPlayer extends StatelessWidget {
   final RepertorioItem item;
@@ -23,78 +24,99 @@ class MiniPlayer extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: Container(
-        height: 64,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1B3B5A),
-          borderRadius: BorderRadius.circular(32), // Pill shape
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.2),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
+      child: AnimatedSize(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        alignment: Alignment.bottomCenter,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // Voice Badge
             Container(
-              padding: const EdgeInsets.all(8),
+              height: 64,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.2),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(Icons.music_note_rounded, color: color, size: 24),
-            ),
-            const SizedBox(width: 12),
-            // Title and Naipe
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.titulo,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                color: const Color(0xFF1B3B5A),
+                borderRadius: BorderRadius.circular(32),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    currentVoz.naipe,
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.7),
-                      fontSize: 12,
+                ],
+              ),
+              child: Row(
+                children: [
+                  // Voice Badge
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.2),
+                      shape: BoxShape.circle,
                     ),
+                    child: Icon(
+                      Icons.music_note_rounded,
+                      color: color,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // Title and Naipe
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.titulo,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          currentVoz.naipe,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.7),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Play/Pause Button
+                  IconButton(
+                    icon: Icon(
+                      isPlaying
+                          ? Icons.pause_rounded
+                          : Icons.play_arrow_rounded,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                    onPressed: audioService.togglePlayPause,
+                  ),
+                  // Close Button
+                  IconButton(
+                    icon: const Icon(
+                      Icons.close_rounded,
+                      color: Colors.white70,
+                    ),
+                    onPressed: audioService.stopAndClear,
                   ),
                 ],
               ),
             ),
-            // Play/Pause Button
-            IconButton(
-              icon: Icon(
-                isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                color: Colors.white,
-                size: 32,
+            // Indicador de download sutil abaixo da pílula
+            if (audioService.isDownloading &&
+                audioService.downloadUrl == currentVoz.link)
+              DownloadIndicator(
+                currentVoz: currentVoz,
+                theme: DownloadIndicatorTheme.light,
               ),
-              onPressed: audioService.togglePlayPause,
-            ),
-            // Close Button
-            IconButton(
-              icon: const Icon(Icons.close_rounded, color: Colors.white70),
-              onPressed: () {
-                audioService.stop();
-                // Need a way to clear currentVoz from AudioService
-                // Wait, audioService.stop() doesn't clear currentVoz.
-                // We should add stopAndClear() or clear currentVoz directly.
-              },
-            ),
           ],
         ),
       ),

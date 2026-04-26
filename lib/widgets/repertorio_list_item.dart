@@ -6,6 +6,7 @@ import '../utils/ui_utils.dart';
 import '../utils/app_colors.dart';
 import 'voice_selection_dialog.dart';
 import 'audio_visualizer.dart';
+import 'download_indicator.dart';
 
 class RepertorioListItem extends StatelessWidget {
   final RepertorioItem item;
@@ -41,104 +42,140 @@ class RepertorioListItem extends StatelessWidget {
         child: Material(
           color: Colors.transparent,
           borderRadius: BorderRadius.circular(20),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(20),
-            onTap: () {
-              // final rect = getWidgetGlobalRect(context);
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              InkWell(
+                borderRadius: BorderRadius.circular(20),
+                onTap: () {
+                  // final rect = getWidgetGlobalRect(context);
 
-              // if (rect != null) {
-              //   customLauncherHero(
-              //     context: context,
-              //     target: VoiceSelectionDialog(item: item),
-              //     originRect: rect,
-              //   );
-              // }
-              customLauncher(
-                context: context,
-                target: VoiceSelectionDialog(item: item),
-                opaque: false,
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(
-                16,
-              ), // Increased padding for clearer layout
-              child: Row(
-                crossAxisAlignment:
-                    CrossAxisAlignment.center, // Center vertically
-                children: [
-                  // Icon
-                  Container(
-                    height: 50,
-                    width: 50,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF5E819D), // Muted blue
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.music_note_rounded,
-                      color: Colors.white,
-                      size: 28,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  // Texts and Badges
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min, // Wrap content height
-                      children: [
-                        Hero(
-                          tag: 'titulo_${item.titulo}_${item.id}',
-                          child: Material(
-                            type: MaterialType.transparency,
-                            child: Text(
-                              item.titulo,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1A1A1A),
-                                letterSpacing: 0.5,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        // Pass 'item' to _buildBadge to access the full Voz object if needed,
-                        // but currently _buildBadge only needs the string naipe.
-                        Wrap(
-                          spacing: 6,
-                          runSpacing: 6,
-                          children: item.vozes
-                              .map((voz) => _buildBadge(context, voz))
-                              .toList(),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  // Action Button & Size
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
+                  // if (rect != null) {
+                  //   customLauncherHero(
+                  //     context: context,
+                  //     target: VoiceSelectionDialog(item: item),
+                  //     originRect: rect,
+                  //   );
+                  // }
+                  customLauncher(
+                    context: context,
+                    target: VoiceSelectionDialog(item: item),
+                    opaque: false,
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(
+                    16,
+                  ), // Increased padding for clearer layout
+                  child: Row(
+                    crossAxisAlignment:
+                        CrossAxisAlignment.center, // Center vertically
                     children: [
-                      _buildActionButton(context),
-                      if (!isDownloaded && item.tamanho.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          item.tamanho,
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: Colors.grey,
-                          ),
+                      // Icon
+                      Container(
+                        height: 50,
+                        width: 50,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF5E819D), // Muted blue
+                          shape: BoxShape.circle,
                         ),
-                      ],
+                        child: const Icon(
+                          Icons.music_note_rounded,
+                          color: Colors.white,
+                          size: 28,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      // Texts and Badges
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min, // Wrap content height
+                          children: [
+                            Hero(
+                              tag: 'titulo_${item.titulo}_${item.id}',
+                              child: Material(
+                                type: MaterialType.transparency,
+                                child: Text(
+                                  item.titulo,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF1A1A1A),
+                                    letterSpacing: 0.5,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            // Pass 'item' to _buildBadge to access the full Voz object if needed,
+                            // but currently _buildBadge only needs the string naipe.
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 6,
+                              children: item.vozes
+                                  .map((voz) => _buildBadge(context, voz))
+                                  .toList(),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Action Button & Size
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _buildActionButton(context),
+                          if (!isDownloaded && item.tamanho.isNotEmpty) ...[
+                            Builder(
+                              builder: (context) {
+                                final audioService = context
+                                    .watch<AudioService>();
+                                final isThisItemDownloading =
+                                    audioService.isDownloading &&
+                                    item.vozes.any(
+                                      (v) => v.link == audioService.downloadUrl,
+                                    );
+                                if (isThisItemDownloading)
+                                  return const SizedBox.shrink();
+                                return Column(
+                                  children: [
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      item.tamanho,
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                          ],
+                        ],
+                      ),
                     ],
                   ),
-                ],
+                ),
               ),
-            ),
+              // Indicador de download — aparece abaixo quando este item está sendo baixado
+              Builder(
+                builder: (context) {
+                  final audioService = context.watch<AudioService>();
+                  final downloadingVoz = item.vozes.cast<Voz?>().firstWhere(
+                    (v) => v?.link == audioService.downloadUrl,
+                    orElse: () => null,
+                  );
+                  if (!audioService.isDownloading || downloadingVoz == null) {
+                    return const SizedBox.shrink();
+                  }
+                  return DownloadIndicator(currentVoz: downloadingVoz);
+                },
+              ),
+            ],
           ),
         ),
       ),
