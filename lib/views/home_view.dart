@@ -39,16 +39,25 @@ class _HomeViewState extends State<HomeView> {
             actions: [
               Consumer<RepertorioViewModel>(
                 builder: (context, viewModel, _) {
-                  if (!viewModel.isUsingLocalFallback) return const SizedBox.shrink();
+                  if (!viewModel.isUsingLocalFallback)
+                    return const SizedBox.shrink();
                   return Padding(
                     padding: const EdgeInsets.only(right: 12),
                     child: Tooltip(
                       message: 'Sem conexão — exibindo repertório salvo',
                       child: Chip(
-                        avatar: const Icon(Icons.wifi_off_rounded, size: 14, color: Colors.white),
+                        avatar: const Icon(
+                          Icons.wifi_off_rounded,
+                          size: 14,
+                          color: Colors.white,
+                        ),
                         label: const Text(
                           'Offline',
-                          style: TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                         backgroundColor: const Color(0xFF5E819D),
                         padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -76,7 +85,10 @@ class _HomeViewState extends State<HomeView> {
               }
 
               return ListView.builder(
-                padding: EdgeInsets.only(top: 8, bottom: audioService.currentVoz != null ? 100 : 20),
+                padding: EdgeInsets.only(
+                  top: 8,
+                  bottom: audioService.currentVoz != null ? 100 : 20,
+                ),
                 itemCount: viewModel.repertorio.length,
                 itemBuilder: (context, index) {
                   final RepertorioItem item = viewModel.repertorio[index];
@@ -109,31 +121,31 @@ class _HomeViewState extends State<HomeView> {
               );
             },
           ),
-          bottomNavigationBar: NavigationBar(
-        selectedIndex: 1, // Ensaios
-        backgroundColor: Colors.white,
-        indicatorColor: const Color(0xFFD3E4F2),
-        onDestinationSelected: (index) {
-          // Implement navigation later if needed
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Início',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.menu_book_outlined),
-            selectedIcon: Icon(Icons.menu_book),
-            label: 'Ensaios',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Perfil',
-          ),
-        ],
-      ),
+          //     bottomNavigationBar: NavigationBar(
+          //   selectedIndex: 1, // Ensaios
+          //   backgroundColor: Colors.white,
+          //   indicatorColor: const Color(0xFFD3E4F2),
+          //   onDestinationSelected: (index) {
+          //     // Implement navigation later if needed
+          //   },
+          //   destinations: const [
+          //     NavigationDestination(
+          //       icon: Icon(Icons.home_outlined),
+          //       selectedIcon: Icon(Icons.home),
+          //       label: 'Início',
+          //     ),
+          //     NavigationDestination(
+          //       icon: Icon(Icons.menu_book_outlined),
+          //       selectedIcon: Icon(Icons.menu_book),
+          //       label: 'Ensaios',
+          //     ),
+          //     NavigationDestination(
+          //       icon: Icon(Icons.person_outline),
+          //       selectedIcon: Icon(Icons.person),
+          //       label: 'Perfil',
+          //     ),
+          //   ],
+          // ),
         ),
         if (audioService.currentVoz != null && audioService.currentItem != null)
           PlayerOverlay(item: audioService.currentItem!),

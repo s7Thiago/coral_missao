@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   // Voice Colors
-  static const Color soprano = Color(0xFFE91E63);
-  static const Color contralto = Color(0xFFFF9800);
-  static const Color tenor = Color(0xFF4CAF50);
-  static const Color baixo = Color(0xFF2196F3);
-  static const Color todasAsVozes = Color.fromARGB(255, 32, 0, 211);
+  static const Color soprano = Color.fromARGB(255, 233, 74, 127);
+  static const Color contralto = Color.fromARGB(255, 255, 123, 0);
+  static const Color tenor = Color.fromARGB(255, 8, 187, 47);
+  static const Color baixo = Color.fromARGB(255, 20, 124, 209);
+  static const Color todasAsVozes = Color.fromARGB(255, 49, 138, 108);
   static const Color voiceDefault = Color(0xFF9E9E9E);
 
   static Color getVoiceColor(String voice) {
