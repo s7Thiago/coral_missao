@@ -18,6 +18,10 @@
             {
                 "naipe": "BAIXO",
                 "link": "https://firebasestorage.googleapis.com/v0/b/coral-missao-4a90d.firebasestorage.app/o/AGNUS_DEI.BAIXO.mp3?alt=media&token=a1cd47db-2ae3-4d72-9aef-5eba2fa8a7e3"
+            },
+            {
+                "naipe": "TODAS AS VOZES",
+                "link": "https://firebasestorage.googleapis.com/v0/b/coral-missao-4a90d.firebasestorage.app/o/AGNUS_DEI.CANTADO.mp3?alt=media&token=bbb9b89c-9c06-4d50-a748-e591c3b402fd"
             }
         ],
         "tamanho": "8.91MB"

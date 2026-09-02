@@ -1,5 +1,9 @@
+import 'package:coral_missao/models/repertorio_model.dart';
+import 'package:coral_missao/services/audio_service.dart';
+import 'package:coral_missao/widgets/audio_visualizer.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
 
 void customLauncher({
   required Widget target,
@@ -157,4 +161,22 @@ class _GrowTransition extends StatelessWidget {
       },
     );
   }
+}
+
+List<Widget> buildAudioVisualizer(BuildContext context, Voz voz) {
+  final audioService = context.watch<AudioService>();
+  final isCurrentVoice = audioService.currentVoz?.link == voz.link;
+  final isPlaying = isCurrentVoice && audioService.isPlaying;
+  if (isCurrentVoice && isPlaying) {
+    return [
+      AudioVisualizer(color: Colors.white, isPlaying: true, size: 10),
+      const SizedBox(width: 4),
+    ];
+  } else if (isCurrentVoice && !isPlaying) {
+    return [
+      const Icon(Icons.pause, size: 10, color: Colors.white),
+      const SizedBox(width: 4),
+    ];
+  }
+  return [];
 }

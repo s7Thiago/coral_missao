@@ -1,3 +1,5 @@
+import 'package:coral_missao/utils/app_colors.dart';
+import 'package:coral_missao/utils/ui_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/repertorio_model.dart';
@@ -263,7 +265,7 @@ class MusicPlayerView extends StatelessWidget {
                             decoration: BoxDecoration(
                               color: isSelected
                                   ? const Color(0xFF16476B)
-                                  : Colors.white,
+                                  : AppColors.getVoiceColor(voz.naipe),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
                                 color: isSelected
@@ -272,16 +274,26 @@ class MusicPlayerView extends StatelessWidget {
                                 width: 1.0,
                               ),
                             ),
-                            child: Text(
-                              voz.naipe,
-                              style: TextStyle(
-                                color: isSelected
-                                    ? Colors.white
-                                    : const Color(0xFF757575),
-                                fontWeight: isSelected
-                                    ? FontWeight.w600
-                                    : FontWeight.normal,
-                              ),
+                            child: Row(
+                              children: [
+                                ...buildAudioVisualizer(context, voz),
+                                Text(
+                                  voz.naipe,
+                                  style: TextStyle(
+                                    color: isSelected
+                                        ? Colors.white
+                                        : const Color.fromARGB(
+                                            255,
+                                            255,
+                                            255,
+                                            255,
+                                          ),
+                                    fontWeight: isSelected
+                                        ? FontWeight.w600
+                                        : FontWeight.normal,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),

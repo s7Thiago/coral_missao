@@ -234,7 +234,6 @@ class RepertorioListItem extends StatelessWidget {
 
     final audioService = context.watch<AudioService>();
     final isCurrentVoice = audioService.currentVoz?.link == voz.link;
-    final isPlaying = isCurrentVoice && audioService.isPlaying;
 
     return Hero(
       tag: 'badge_${voz.link}_${voz.naipe}',
@@ -251,13 +250,7 @@ class RepertorioListItem extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (isCurrentVoice && isPlaying) ...[
-                AudioVisualizer(color: Colors.white, isPlaying: true, size: 10),
-                const SizedBox(width: 4),
-              ] else if (isCurrentVoice && !isPlaying) ...[
-                const Icon(Icons.pause, size: 10, color: Colors.white),
-                const SizedBox(width: 4),
-              ],
+              ...buildAudioVisualizer(context, voz),
               Text(
                 voice,
                 style: const TextStyle(
