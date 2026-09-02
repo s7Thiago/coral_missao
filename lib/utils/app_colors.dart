@@ -6,7 +6,7 @@ class AppColors {
   static const Color contralto = Color(0xFFFF9800);
   static const Color tenor = Color(0xFF4CAF50);
   static const Color baixo = Color(0xFF2196F3);
-  static const Color todasAsVozes = Color(0xFF2196F3);
+  static const Color todasAsVozes = Color.fromARGB(255, 32, 0, 211);
   static const Color voiceDefault = Color(0xFF9E9E9E);
 
   static Color getVoiceColor(String voice) {
