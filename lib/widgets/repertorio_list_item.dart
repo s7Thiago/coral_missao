@@ -217,7 +217,7 @@ class RepertorioListItem extends StatelessWidget {
                 ? Icons.pause_rounded
                 : (isDownloaded
                       ? Icons.play_arrow_rounded
-                      : Icons.library_music),
+                      : Icons.play_arrow_rounded),
             color: (isDownloaded || isItemPlaying)
                 ? Colors.white
                 : const Color(0xFF0D496F), // Dark blue icon for download
