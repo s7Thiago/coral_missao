@@ -5,6 +5,7 @@ import '../models/repertorio_model.dart';
 import '../services/audio_service.dart';
 import '../widgets/repertorio_list_item.dart';
 import '../widgets/player_overlay.dart';
+import '../widgets/vocal_naipe_selector.dart';
 import '../utils/screen_utils.dart';
 
 class HomeView extends StatefulWidget {
@@ -28,6 +29,7 @@ class _HomeViewState extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
     final audioService = context.watch<AudioService>();
+    final hasActiveAudio = audioService.currentVoz != null && audioService.currentItem != null;
 
     return Stack(
       children: [
@@ -39,8 +41,9 @@ class _HomeViewState extends State<HomeView> {
             actions: [
               Consumer<RepertorioViewModel>(
                 builder: (context, viewModel, _) {
-                  if (!viewModel.isUsingLocalFallback)
+                  if (!viewModel.isUsingLocalFallback) {
                     return const SizedBox.shrink();
+                  }
                   return Padding(
                     padding: const EdgeInsets.only(right: 12),
                     child: Tooltip(
@@ -81,13 +84,58 @@ class _HomeViewState extends State<HomeView> {
               }
 
               if (viewModel.repertorio.isEmpty) {
-                return const Center(child: Text('Nenhum dado encontrado.'));
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.music_off_rounded,
+                          size: 64,
+                          color: Colors.grey.shade400,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          viewModel.selectedNaipe == 'TODAS AS VOZES'
+                              ? 'Nenhum dado encontrado.'
+                              : 'Nenhuma música encontrada para o naipe ${viewModel.selectedNaipe}.',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF5E819D),
+                          ),
+                        ),
+                        if (viewModel.selectedNaipe != 'TODAS AS VOZES') ...[
+                          const SizedBox(height: 16),
+                          ElevatedButton.icon(
+                            onPressed: () => viewModel.selectNaipe('TODAS AS VOZES'),
+                            icon: const Icon(Icons.refresh_rounded),
+                            label: const Text('Exibir todas as vozes'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF16476B),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 12,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                );
               }
 
               return ListView.builder(
                 padding: EdgeInsets.only(
                   top: 8,
-                  bottom: audioService.currentVoz != null ? 100 : 20,
+                  bottom: hasActiveAudio ? 180 : 100,
                 ),
                 itemCount: viewModel.repertorio.length,
                 itemBuilder: (context, index) {
@@ -121,35 +169,14 @@ class _HomeViewState extends State<HomeView> {
               );
             },
           ),
-          //     bottomNavigationBar: NavigationBar(
-          //   selectedIndex: 1, // Ensaios
-          //   backgroundColor: Colors.white,
-          //   indicatorColor: const Color(0xFFD3E4F2),
-          //   onDestinationSelected: (index) {
-          //     // Implement navigation later if needed
-          //   },
-          //   destinations: const [
-          //     NavigationDestination(
-          //       icon: Icon(Icons.home_outlined),
-          //       selectedIcon: Icon(Icons.home),
-          //       label: 'Início',
-          //     ),
-          //     NavigationDestination(
-          //       icon: Icon(Icons.menu_book_outlined),
-          //       selectedIcon: Icon(Icons.menu_book),
-          //       label: 'Ensaios',
-          //     ),
-          //     NavigationDestination(
-          //       icon: Icon(Icons.person_outline),
-          //       selectedIcon: Icon(Icons.person),
-          //       label: 'Perfil',
-          //     ),
-          //   ],
-          // ),
         ),
-        if (audioService.currentVoz != null && audioService.currentItem != null)
+        // Componente flutuante fixo de seleção de naipes na parte inferior
+        const VocalNaipeSelector(),
+        // Overlay do Player de Áudio quando ativo (exibido acima da seleção de naipes)
+        if (hasActiveAudio)
           PlayerOverlay(item: audioService.currentItem!),
       ],
     );
   }
 }
+
