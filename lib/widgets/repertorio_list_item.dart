@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../models/repertorio_model.dart';
 import '../services/audio_service.dart';
-import '../utils/ui_utils.dart';
 import '../utils/app_colors.dart';
-import 'voice_selection_dialog.dart';
-import 'audio_visualizer.dart';
+import '../utils/ui_utils.dart';
 import 'download_indicator.dart';
+import 'voice_selection_dialog.dart';
 
 class RepertorioListItem extends StatelessWidget {
   final RepertorioItem item;

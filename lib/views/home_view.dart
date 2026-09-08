@@ -30,6 +30,11 @@ class _HomeViewState extends State<HomeView> {
   Widget build(BuildContext context) {
     final audioService = context.watch<AudioService>();
     final hasActiveAudio = audioService.currentVoz != null && audioService.currentItem != null;
+    final double maxWidth = context.isDesktop
+        ? 800
+        : context.isTablet
+            ? 700
+            : MediaQuery.of(context).size.width;
 
     return Stack(
       children: [
@@ -141,27 +146,16 @@ class _HomeViewState extends State<HomeView> {
                 itemBuilder: (context, index) {
                   final RepertorioItem item = viewModel.repertorio[index];
                   return Center(
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOutQuad,
+                    child: ConstrainedBox(
                       constraints: BoxConstraints(
-                        maxWidth: context.isDesktop
-                            ? 800
-                            : context.isTablet
-                            ? 700
-                            : MediaQuery.of(context).size.width,
+                        maxWidth: maxWidth,
                       ),
                       child: RepertorioListItem(
+                        key: ValueKey(item.id),
                         item: item,
                         isDownloaded: false,
-                        onPressed: () {
-                          // TODO: Implement download logic
-                          print('Download ${item.titulo}');
-                        },
-                        onPlayPressed: () {
-                          // TODO: Implement play logic
-                          print('Play ${item.titulo}');
-                        },
+                        onPressed: () {},
+                        onPlayPressed: () {},
                       ),
                     ),
                   );
