@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
@@ -59,7 +58,7 @@ class AudioService extends ChangeNotifier {
 
   AudioService() {
     _player.positionStream.listen((pos) {
-      position = pos ?? Duration.zero;
+      position = pos;
       notifyListeners();
     });
 

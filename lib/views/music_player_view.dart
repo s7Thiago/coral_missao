@@ -4,18 +4,91 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/repertorio_model.dart';
 import '../services/audio_service.dart';
+import '../widgets/audio_visualizer.dart';
 import '../widgets/download_indicator.dart';
+import 'lyrics_view.dart';
 
-class MusicPlayerView extends StatelessWidget {
+class MusicPlayerView extends StatefulWidget {
   final RepertorioItem item;
 
   const MusicPlayerView({super.key, required this.item});
+
+  @override
+  State<MusicPlayerView> createState() => _MusicPlayerViewState();
+}
+
+class _MusicPlayerViewState extends State<MusicPlayerView> {
+  bool _showLyrics = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.item.temLetra) {
+      _showLyrics = true;
+    }
+  }
 
   String _formatDuration(Duration d) {
     String twoDigits(int n) => n.toString().padLeft(2, "0");
     String twoDigitMinutes = twoDigits(d.inMinutes.remainder(60));
     String twoDigitSeconds = twoDigits(d.inSeconds.remainder(60));
     return "$twoDigitMinutes:$twoDigitSeconds";
+  }
+
+  Widget _buildHeader(BuildContext context, bool isPlaying) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          AudioVisualizer(
+            color: const Color(0xFF16476B),
+            isPlaying: isPlaying,
+            size: 20,
+          ),
+          const SizedBox(width: 10),
+          Flexible(
+            child: RichText(
+              textAlign: TextAlign.center,
+              text: TextSpan(
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: Color(0xFF5E819D),
+                  fontWeight: FontWeight.w500,
+                ),
+                children: [
+                  const TextSpan(text: 'Reproduzindo: '),
+                  TextSpan(
+                    text: widget.item.titulo.toUpperCase(),
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF043359),
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (widget.item.temLetra) ...[
+            const SizedBox(width: 8),
+            IconButton(
+              icon: Icon(
+                _showLyrics ? Icons.music_note_rounded : Icons.article_rounded,
+                color: const Color(0xFF16476B),
+              ),
+              tooltip: _showLyrics ? 'Exibir capa' : 'Exibir letra',
+              onPressed: () {
+                setState(() {
+                  _showLyrics = !_showLyrics;
+                });
+              },
+            ),
+          ],
+        ],
+      ),
+    );
   }
 
   @override
@@ -45,43 +118,54 @@ class MusicPlayerView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
+            _buildHeader(context, isPlaying),
+            const SizedBox(height: 16),
 
-            // Header
-            Text(
-              'Reproduzindo: ${item.titulo.toUpperCase()}',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF1B3B5A),
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-
-            // Album Art placeholder
+            // Center View: Album Art OR LyricsView (without internal player controls)
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 40.0),
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF8BA9C5),
-                      borderRadius: BorderRadius.circular(32),
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.music_note_rounded,
-                        size: 140,
+              child: _showLyrics && widget.item.temLetra
+                  ? Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(24),
                         color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: LyricsView(
+                        item: widget.item,
+                        showPlayerControls: false,
+                        showCloseButton: false,
+                      ),
+                    )
+                  : Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 40.0),
+                      child: AspectRatio(
+                        aspectRatio: 1,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF8BA9C5),
+                            borderRadius: BorderRadius.circular(32),
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.music_note_rounded,
+                              size: 140,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-              ),
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 16),
 
             DownloadIndicator(currentVoz: currentVoz),
 
@@ -150,7 +234,7 @@ class MusicPlayerView extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
 
             // Playback Controls
             Row(
@@ -168,7 +252,7 @@ class MusicPlayerView extends StatelessWidget {
                 GestureDetector(
                   onTap: audioService.togglePlayPause,
                   child: Hero(
-                    tag: 'play_button_${item.titulo}_${currentVoz?.naipe}',
+                    tag: 'play_button_${widget.item.titulo}_${currentVoz?.naipe}',
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: const BoxDecoration(
@@ -226,7 +310,7 @@ class MusicPlayerView extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
             // Voice Selection
             const Padding(
@@ -235,26 +319,26 @@ class MusicPlayerView extends StatelessWidget {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   'Selecione o Naipe',
-                  style: TextStyle(fontSize: 18, color: Color(0xFF1A1A1A)),
+                  style: TextStyle(fontSize: 16, color: Color(0xFF1A1A1A)),
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
 
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Row(
-                children: item.vozes.map((voz) {
+                children: widget.item.vozes.map((voz) {
                   final isSelected = currentVoz == voz;
                   return Padding(
                     padding: const EdgeInsets.only(right: 8.0),
                     child: InkWell(
                       onTap: () =>
-                          audioService.playVoz(voz, item, keepPosition: true),
+                          audioService.playVoz(voz, widget.item, keepPosition: true),
                       borderRadius: BorderRadius.circular(20),
                       child: Hero(
-                        tag: 'title_voice_${item.titulo}_${voz.naipe}',
+                        tag: 'title_voice_${widget.item.titulo}_${voz.naipe}',
                         child: Material(
                           type: MaterialType.transparency,
                           child: Container(
@@ -304,7 +388,7 @@ class MusicPlayerView extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
           ],
         ),
       ),

@@ -5,6 +5,7 @@ import '../models/repertorio_model.dart';
 import '../services/audio_service.dart';
 import '../utils/app_colors.dart';
 import '../utils/ui_utils.dart';
+import '../views/lyrics_view.dart';
 import 'download_indicator.dart';
 import 'voice_selection_dialog.dart';
 
@@ -124,39 +125,7 @@ class RepertorioListItem extends StatelessWidget {
                       ),
                       const SizedBox(width: 12),
                       // Action Button & Size
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _buildActionButton(context),
-                          if (!isDownloaded && item.tamanho.isNotEmpty) ...[
-                            Builder(
-                              builder: (context) {
-                                final audioService = context
-                                    .watch<AudioService>();
-                                final isThisItemDownloading =
-                                    audioService.isDownloading &&
-                                    item.vozes.any(
-                                      (v) => v.link == audioService.downloadUrl,
-                                    );
-                                if (isThisItemDownloading)
-                                  return const SizedBox.shrink();
-                                return Column(
-                                  children: [
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      item.tamanho,
-                                      style: const TextStyle(
-                                        fontSize: 10,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              },
-                            ),
-                          ],
-                        ],
-                      ),
+                      _buildActionButton(context),
                     ],
                   ),
                 ),
@@ -183,45 +152,32 @@ class RepertorioListItem extends StatelessWidget {
   }
 
   Widget _buildActionButton(BuildContext context) {
-    final audioService = context.watch<AudioService>();
-    final isItemPlaying =
-        audioService.currentVoz != null &&
-        item.vozes.any((v) => v.link == audioService.currentVoz!.link) &&
-        audioService.isPlaying;
+    if (!item.temLetra) {
+      return const SizedBox.shrink();
+    }
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-          if (isItemPlaying) {
-            audioService.pause();
-          } else if (audioService.currentVoz != null &&
-              item.vozes.any((v) => v.link == audioService.currentVoz!.link)) {
-            audioService.play();
-          } else {
-            isDownloaded ? onPlayPressed?.call() : onPressed?.call();
-          }
+          customLauncher(
+            context: context,
+            target: LyricsView(item: item),
+            opaque: false,
+          );
         },
         borderRadius: BorderRadius.circular(16),
         child: Container(
           height: 48,
           width: 48,
           decoration: BoxDecoration(
-            color: (isDownloaded || isItemPlaying)
-                ? const Color(0xFF0D496F) // Dark blue for Play/Pause
-                : const Color(0xFFD8E4ED), // Light blue for Download
+            color: const Color(0xFFD8E4ED),
             borderRadius: BorderRadius.circular(16),
           ),
-          child: Icon(
-            isItemPlaying
-                ? Icons.pause_rounded
-                : (isDownloaded
-                      ? Icons.play_arrow_rounded
-                      : Icons.play_arrow_rounded),
-            color: (isDownloaded || isItemPlaying)
-                ? Colors.white
-                : const Color(0xFF0D496F), // Dark blue icon for download
-            size: 28,
+          child: const Icon(
+            Icons.article_outlined,
+            color: Color(0xFF0D496F),
+            size: 26,
           ),
         ),
       ),
