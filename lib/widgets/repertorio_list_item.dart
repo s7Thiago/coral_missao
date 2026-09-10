@@ -160,11 +160,15 @@ class RepertorioListItem extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-          customLauncher(
-            context: context,
-            target: LyricsView(item: item),
-            opaque: false,
-          );
+          final rect = getWidgetGlobalRect(context);
+
+          if (rect != null) {
+            customLauncherHero(
+              context: context,
+              target: LyricsView(item: item),
+              originRect: rect,
+            );
+          }
         },
         borderRadius: BorderRadius.circular(16),
         child: Container(

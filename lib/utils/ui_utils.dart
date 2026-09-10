@@ -135,7 +135,7 @@ class _GrowTransition extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
-    final curved = CurvedAnimation(parent: animation, curve: Curves.easeInOut);
+    final curved = CurvedAnimation(parent: animation, curve: Curves.fastOutSlowIn);
 
     final rectTween = RectTween(
       begin: originRect,
@@ -153,7 +153,14 @@ class _GrowTransition extends StatelessWidget {
               rect: rect,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular((1 - curved.value) * 16),
-                child: child,
+                child: OverflowBox(
+                  minWidth: screenSize.width,
+                  maxWidth: screenSize.width,
+                  minHeight: screenSize.height,
+                  maxHeight: screenSize.height,
+                  alignment: Alignment.topLeft,
+                  child: child,
+                ),
               ),
             ),
           ],
