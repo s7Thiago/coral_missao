@@ -7,6 +7,10 @@ import '../services/audio_service.dart';
 import '../utils/app_colors.dart';
 import '../widgets/audio_visualizer.dart';
 
+/// Controles sutis de player de áudio com 3 estados morficados e animados:
+/// 1. PARADO (FAB): Transforma-se suavemente em formato de Floating Action Button circular quando a música está parada.
+/// 2. MINIMIZADO: Barra sutil horizontal com progresso e controles básicos.
+/// 3. EXPANDIDO: Barra completa com controle de velocidade, slider de busca e seletor de naipes.
 class SubtlePlayerControls extends StatefulWidget {
   final RepertorioItem item;
 
@@ -20,19 +24,31 @@ class SubtlePlayerControls extends StatefulWidget {
 }
 
 class _SubtlePlayerControlsState extends State<SubtlePlayerControls> {
-  bool _isMinimized = false;
+  bool _isMinimized = true;
   Timer? _inactivityTimer;
-
-  @override
-  void initState() {
-    super.initState();
-    _resetInactivityTimer();
-  }
 
   @override
   void dispose() {
     _inactivityTimer?.cancel();
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final audioService = context.watch<AudioService>();
+    if (audioService.shouldExpandPlayer) {
+      audioService.shouldExpandPlayer = false;
+      if (_isMinimized) {
+        _isMinimized = false;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            context.read<AudioService>().setPlayerExpanded(true);
+            _resetInactivityTimer();
+          }
+        });
+      }
+    }
   }
 
   void _resetInactivityTimer() {
@@ -41,21 +57,25 @@ class _SubtlePlayerControlsState extends State<SubtlePlayerControls> {
       setState(() {
         _isMinimized = false;
       });
+      context.read<AudioService>().setPlayerExpanded(true);
     }
-    _inactivityTimer = Timer(const Duration(seconds: 2), () {
+    _inactivityTimer = Timer(const Duration(seconds: 3), () {
       if (mounted) {
         setState(() {
           _isMinimized = true;
         });
+        context.read<AudioService>().setPlayerExpanded(false);
       }
     });
   }
 
   void _toggleMinimize() {
+    final newMinimized = !_isMinimized;
     setState(() {
-      _isMinimized = !_isMinimized;
+      _isMinimized = newMinimized;
     });
-    if (!_isMinimized) {
+    context.read<AudioService>().setPlayerExpanded(!newMinimized);
+    if (!newMinimized) {
       _resetInactivityTimer();
     } else {
       _inactivityTimer?.cancel();
@@ -77,21 +97,36 @@ class _SubtlePlayerControlsState extends State<SubtlePlayerControls> {
     final isPlaying = isItemActive && audioService.isPlaying;
     final position = isItemActive ? audioService.position : Duration.zero;
     final duration = isItemActive ? audioService.duration : Duration.zero;
+    final isMusicActive = isItemActive && (isPlaying || position > Duration.zero);
     final isMusicPlaying = isItemActive && duration > Duration.zero;
     final hasNaipes = widget.item.vozes.isNotEmpty;
 
-    final double progressPercent = (isMusicPlaying && duration.inMilliseconds > 0)
-        ? (position.inMilliseconds / duration.inMilliseconds).clamp(0.0, 1.0)
-        : 0.0;
+    // Se o player não estiver ativo nem pausado (ou seja, está PARADO), assume o estado FAB
+    final isStopped = !isMusicActive;
 
-    const animationDuration = Duration(milliseconds: 400);
+    const animationDuration = Duration(milliseconds: 380);
     const animationCurve = Curves.fastOutSlowIn;
 
-    return Listener(
-      onPointerDown: (_) => _resetInactivityTimer(),
+    final double progressPercent =
+        (isMusicPlaying && duration.inMilliseconds > 0)
+            ? (position.inMilliseconds / duration.inMilliseconds).clamp(0.0, 1.0)
+            : 0.0;
+
+    Widget playerBody = Listener(
+      onPointerDown: (_) {
+        if (!isStopped) _resetInactivityTimer();
+      },
       child: GestureDetector(
         onTap: () {
-          if (_isMinimized) {
+          if (isStopped) {
+            setState(() {
+              _isMinimized = false;
+            });
+            _resetInactivityTimer();
+            if (widget.item.vozes.isNotEmpty) {
+              audioService.playVoz(widget.item.vozes.first, widget.item);
+            }
+          } else if (_isMinimized) {
             _toggleMinimize();
           } else {
             _resetInactivityTimer();
@@ -100,194 +135,260 @@ class _SubtlePlayerControlsState extends State<SubtlePlayerControls> {
         child: AnimatedContainer(
           duration: animationDuration,
           curve: animationCurve,
-          margin: const EdgeInsets.all(12.0),
+          margin: isStopped
+              ? const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0)
+              : EdgeInsets.zero,
           padding: EdgeInsets.symmetric(
-            horizontal: 16.0,
-            vertical: _isMinimized ? 8.0 : 12.0,
+            horizontal: isStopped ? 0.0 : 12.0,
+            vertical: isStopped
+                ? 0.0
+                : (_isMinimized ? 6.0 : 10.0),
           ),
+          width: isStopped ? 54.0 : double.infinity,
+          height: isStopped ? 54.0 : null,
           decoration: BoxDecoration(
             color: const Color(0xFF13324D).withValues(alpha: 0.95),
-            borderRadius: BorderRadius.circular(_isMinimized ? 30 : 24),
+            borderRadius: BorderRadius.circular(
+              isStopped ? 27.0 : (_isMinimized ? 30.0 : 24.0),
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.18),
-                blurRadius: _isMinimized ? 8 : 14,
+                color: Colors.black.withValues(alpha: isStopped ? 0.3 : 0.2),
+                blurRadius: isStopped ? 12 : (_isMinimized ? 8 : 14),
                 offset: const Offset(0, 4),
               ),
             ],
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DownloadIndicator(currentVoz: currentVoz),
+          child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              switchInCurve: animationCurve,
+              switchOutCurve: animationCurve,
+              child: isStopped
+                  ? _buildStoppedFabContent(key: const ValueKey('stopped_fab'))
+                  : _buildActivePlayerContent(
+                      key: const ValueKey('active_player'),
+                      audioService: audioService,
+                      currentVoz: currentVoz,
+                      isItemActive: isItemActive,
+                      isPlaying: isPlaying,
+                      position: position,
+                      duration: duration,
+                      isMusicPlaying: isMusicPlaying,
+                      hasNaipes: hasNaipes,
+                      progressPercent: progressPercent,
+                      animationDuration: animationDuration,
+                      animationCurve: animationCurve,
+                    ),
+            ),
+          ),
+        ),
+      );
 
-              // 1. Full Progress Slider (Visible only when EXPANDED)
-              AnimatedSize(
+    return isStopped ? Center(child: playerBody) : playerBody;
+  }
+
+  /// Conteúdo interno quando o player está no estado PARADO (FAB circular com Play)
+  Widget _buildStoppedFabContent({required Key key}) {
+    return Container(
+      key: key,
+      width: 54,
+      height: 54,
+      alignment: Alignment.center,
+      child: const Tooltip(
+        message: 'Tocar música',
+        child: Icon(
+          Icons.play_arrow_rounded,
+          color: Colors.white,
+          size: 32,
+        ),
+      ),
+    );
+  }
+
+  /// Conteúdo interno quando o player está ATIVO (Barra Minimizada ou Expandida)
+  Widget _buildActivePlayerContent({
+    required Key key,
+    required AudioService audioService,
+    required Voz? currentVoz,
+    required bool isItemActive,
+    required bool isPlaying,
+    required Duration position,
+    required Duration duration,
+    required bool isMusicPlaying,
+    required bool hasNaipes,
+    required double progressPercent,
+    required Duration animationDuration,
+    required Curve animationCurve,
+  }) {
+    return Column(
+      key: key,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        DownloadIndicator(currentVoz: currentVoz),
+
+        // 1. Full Progress Slider (Visível apenas quando EXPANDIDO)
+        AnimatedSize(
+          duration: animationDuration,
+          curve: animationCurve,
+          child: AnimatedOpacity(
+            duration: animationDuration,
+            curve: animationCurve,
+            opacity: (!_isMinimized && isMusicPlaying) ? 1.0 : 0.0,
+            child: (!_isMinimized && isMusicPlaying)
+                ? Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildProgressBar(audioService, position, duration),
+                      const SizedBox(height: 6),
+                    ],
+                  )
+                : const SizedBox.shrink(),
+          ),
+        ),
+
+        // 2. Linha Principal de Controles
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Botão de Velocidade
+            _buildSpeedButton(audioService, isItemActive),
+
+            const SizedBox(width: 6),
+
+            // Botão Play / Pause
+            _buildPlayPauseButton(
+              audioService,
+              isItemActive,
+              isPlaying,
+              size: _isMinimized ? 28 : 34,
+            ),
+
+            const SizedBox(width: 6),
+
+            // Seção Central com FittedBox para impedir overflow em telas menores
+            Expanded(
+              child: AnimatedSize(
                 duration: animationDuration,
                 curve: animationCurve,
                 child: AnimatedOpacity(
                   duration: animationDuration,
                   curve: animationCurve,
-                  opacity: (!_isMinimized && isMusicPlaying) ? 1.0 : 0.0,
-                  child: (!_isMinimized && isMusicPlaying)
+                  opacity: _isMinimized ? 1.0 : 0.0,
+                  child: _isMinimized
                       ? Column(
                           mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            _buildProgressBar(audioService, position, duration),
-                            const SizedBox(height: 8),
-                          ],
-                        )
-                      : const SizedBox.shrink(),
-                ),
-              ),
-
-              // 2. Persistent Controls Row (Hero / Shared Elements Movement)
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Speed Button (Persistent)
-                  _buildSpeedButton(audioService, isItemActive),
-
-                  const SizedBox(width: 8),
-
-                  // Play / Pause Button (Persistent with smooth size scaling)
-                  _buildPlayPauseButton(
-                    audioService,
-                    isItemActive,
-                    isPlaying,
-                    size: _isMinimized ? 30 : 36,
-                  ),
-
-                  const SizedBox(width: 8),
-
-                  // Middle Section: Minimized Progress Info OR Flexible Spacer
-                  Expanded(
-                    child: AnimatedSize(
-                      duration: animationDuration,
-                      curve: animationCurve,
-                      child: AnimatedOpacity(
-                        duration: animationDuration,
-                        curve: animationCurve,
-                        opacity: _isMinimized ? 1.0 : 0.0,
-                        child: _isMinimized
-                            ? Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Flexible(
-                                        child: Text(
-                                          currentVoz?.naipe ?? widget.item.titulo,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      if (isMusicPlaying) ...[
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          '${_formatDuration(position)} / ${_formatDuration(duration)}',
-                                          style: const TextStyle(
-                                            color: Colors.white70,
-                                            fontSize: 10,
-                                          ),
-                                        ),
-                                      ],
-                                    ],
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    currentVoz?.naipe ?? widget.item.titulo,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                  const SizedBox(height: 4),
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(2),
-                                    child: LinearProgressIndicator(
-                                      value: progressPercent,
-                                      minHeight: 3,
-                                      backgroundColor: Colors.white24,
-                                      valueColor:
-                                          const AlwaysStoppedAnimation<Color>(
-                                              Colors.white),
+                                ),
+                                if (isMusicPlaying) ...[
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    '${_formatDuration(position)} / ${_formatDuration(duration)}',
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 10,
                                     ),
                                   ),
                                 ],
-                              )
-                            : const SizedBox.shrink(),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(width: 8),
-
-                  // Replay Button (Persistent)
-                  _buildReplayButton(audioService, isItemActive),
-
-                  // Unfold / Expand Icon (Visible only when MINIMIZED)
-                  AnimatedSize(
-                    duration: animationDuration,
-                    curve: animationCurve,
-                    child: AnimatedOpacity(
-                      duration: animationDuration,
-                      curve: animationCurve,
-                      opacity: _isMinimized ? 1.0 : 0.0,
-                      child: _isMinimized
-                          ? Padding(
-                              padding: const EdgeInsets.only(left: 4.0),
-                              child: IconButton(
-                                onPressed: _toggleMinimize,
-                                icon: const Icon(
-                                  Icons.unfold_more_rounded,
-                                  color: Colors.white70,
-                                  size: 20,
-                                ),
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                                tooltip: 'Expandir controles',
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(2),
+                              child: LinearProgressIndicator(
+                                value: progressPercent,
+                                minHeight: 3,
+                                backgroundColor: Colors.white24,
+                                valueColor:
+                                    const AlwaysStoppedAnimation<Color>(
+                                        Colors.white),
                               ),
-                            )
-                          : const SizedBox.shrink(),
-                    ),
-                  ),
-                ],
-              ),
-
-              // 3. Naipe Selector (Visible only when EXPANDED)
-              AnimatedSize(
-                duration: animationDuration,
-                curve: animationCurve,
-                child: AnimatedOpacity(
-                  duration: animationDuration,
-                  curve: animationCurve,
-                  opacity: (!_isMinimized && hasNaipes) ? 1.0 : 0.0,
-                  child: (!_isMinimized && hasNaipes)
-                      ? Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const SizedBox(height: 10),
-                            _buildNaipeSelector(
-                              context,
-                              audioService,
-                              isItemActive,
-                              currentVoz,
-                              isPlaying,
                             ),
                           ],
                         )
                       : const SizedBox.shrink(),
                 ),
               ),
-            ],
+            ),
+
+            const SizedBox(width: 6),
+
+            // Botão de PARAR (Stop)
+            _buildStopButton(audioService, isItemActive),
+
+            // Ícone de Expandir (Visível apenas quando MINIMIZADO)
+            AnimatedSize(
+              duration: animationDuration,
+              curve: animationCurve,
+              child: AnimatedOpacity(
+                duration: animationDuration,
+                curve: animationCurve,
+                opacity: _isMinimized ? 1.0 : 0.0,
+                child: _isMinimized
+                    ? Padding(
+                        padding: const EdgeInsets.only(left: 2.0),
+                        child: IconButton(
+                          onPressed: _toggleMinimize,
+                          icon: const Icon(
+                            Icons.unfold_more_rounded,
+                            color: Colors.white70,
+                            size: 20,
+                          ),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          tooltip: 'Expandir controles',
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
+            ),
+          ],
+        ),
+
+        // 3. Seletor de Naipes (Visível apenas quando EXPANDIDO)
+        AnimatedSize(
+          duration: animationDuration,
+          curve: animationCurve,
+          child: AnimatedOpacity(
+            duration: animationDuration,
+            curve: animationCurve,
+            opacity: (!_isMinimized && hasNaipes) ? 1.0 : 0.0,
+            child: (!_isMinimized && hasNaipes)
+                ? Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(height: 10),
+                      _buildNaipeSelector(
+                        context,
+                        audioService,
+                        isItemActive,
+                        currentVoz,
+                        isPlaying,
+                      ),
+                    ],
+                  )
+                : const SizedBox.shrink(),
           ),
         ),
-      ),
+      ],
     );
   }
 
-  // --- Helper Widgets ---
+  // --- Widgets Auxiliares ---
   Widget _buildNaipeSelector(
     BuildContext context,
     AudioService audioService,
@@ -426,7 +527,7 @@ class _SubtlePlayerControlsState extends State<SubtlePlayerControls> {
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.symmetric(
-          horizontal: 10,
+          horizontal: 8,
           vertical: 4,
         ),
         decoration: BoxDecoration(
@@ -437,7 +538,7 @@ class _SubtlePlayerControlsState extends State<SubtlePlayerControls> {
           isItemActive ? '${audioService.playbackSpeed}x' : '1.0x',
           style: const TextStyle(
             color: Colors.white,
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -449,10 +550,10 @@ class _SubtlePlayerControlsState extends State<SubtlePlayerControls> {
     AudioService audioService,
     bool isItemActive,
     bool isPlaying, {
-    double size = 36,
+    double size = 32,
   }) {
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 400),
+      duration: const Duration(milliseconds: 300),
       curve: Curves.fastOutSlowIn,
       child: IconButton(
         onPressed: () {
@@ -475,14 +576,21 @@ class _SubtlePlayerControlsState extends State<SubtlePlayerControls> {
     );
   }
 
-  Widget _buildReplayButton(AudioService audioService, bool isItemActive) {
+  /// Botão de Parar (Stop) - Para a reprodução e reseta o áudio
+  Widget _buildStopButton(AudioService audioService, bool isItemActive) {
     return IconButton(
       onPressed: isItemActive
-          ? () => audioService.seek(Duration.zero)
-          : () => {},
-      iconSize: 22,
+          ? () async {
+              setState(() {
+                _isMinimized = true;
+              });
+              await audioService.stop();
+            }
+          : null,
+      iconSize: 20,
       color: Colors.white,
-      icon: const Icon(Icons.replay_rounded),
+      icon: const Icon(Icons.stop_rounded),
+      tooltip: 'Parar reprodução',
     );
   }
 }

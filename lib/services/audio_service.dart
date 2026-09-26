@@ -49,6 +49,7 @@ class AudioService extends ChangeNotifier {
   bool isDownloading = false;
   double downloadProgress = 0.0;
   String downloadUrl = '';
+  bool isPlayerExpanded = false;
 
   /// Guard para evitar requisições concorrentes de áudio.
   /// Incrementa a cada chamada; chamadas antigas descartam seu resultado.
@@ -78,15 +79,26 @@ class AudioService extends ChangeNotifier {
   void pause() => _player.pause();
   void play() => _player.play();
 
+  void setPlayerExpanded(bool expanded) {
+    if (isPlayerExpanded != expanded) {
+      isPlayerExpanded = expanded;
+      notifyListeners();
+    }
+  }
+
   Future<void> stop() async {
     await _player.stop();
+    await _player.seek(Duration.zero);
+    position = Duration.zero;
+    isPlaying = false;
+    currentItem = null;
+    currentVoz = null;
+    isPlayerExpanded = false;
     notifyListeners();
   }
 
   Future<void> stopAndClear() async {
-    await _player.stop();
-    currentVoz = null;
-    notifyListeners();
+    await stop();
   }
 
   void setVolume(double value) => _player.setVolume(value);

@@ -184,8 +184,15 @@ class _HomeViewState extends State<HomeView> {
             },
           ),
         ),
-        // Componente flutuante fixo de seleção de naipes na parte inferior
-        const VocalNaipeSelector(),
+        // Componente flutuante fixo de seleção de naipes na parte inferior (oculto durante o carregamento)
+        Consumer<RepertorioViewModel>(
+          builder: (context, viewModel, _) {
+            if (viewModel.isLoading) {
+              return const SizedBox.shrink();
+            }
+            return const VocalNaipeSelector();
+          },
+        ),
         // Overlay do Player de Áudio quando ativo (exibido acima da seleção de naipes)
         if (hasActiveAudio)
           PlayerOverlay(item: audioService.currentItem!),
