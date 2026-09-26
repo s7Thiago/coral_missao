@@ -78,38 +78,35 @@ class FloatingAlignmentControls extends StatelessWidget {
   }) {
     final isSelected = textAlign == align;
 
-    return Tooltip(
-      message: tooltip,
-      child: InkWell(
-        onTap: () => onAlignChanged(align),
-        borderRadius: BorderRadius.circular(16),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.fastOutSlowIn,
-          padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? const Color(0xFF1A365D).withValues(alpha: 0.9)
-                : Colors.transparent,
-            shape: BoxShape.circle,
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.15),
-                      blurRadius: 4,
-                      offset: const Offset(0, 1),
-                    ),
-                  ]
-                : null,
-          ),
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
-            child: Icon(
-              icon,
-              key: ValueKey('${align}_$isSelected'),
-              size: 18,
-              color: isSelected ? Colors.white : const Color(0xFFE2E8F0),
-            ),
+    return InkWell(
+      onTap: () => onAlignChanged(align),
+      borderRadius: BorderRadius.circular(16),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.fastOutSlowIn,
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? const Color(0xFF1A365D).withValues(alpha: 0.9)
+              : Colors.transparent,
+          shape: BoxShape.circle,
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  ),
+                ]
+              : null,
+        ),
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 200),
+          child: Icon(
+            icon,
+            key: ValueKey('${align}_$isSelected'),
+            size: 18,
+            color: isSelected ? Colors.white : const Color(0xFFE2E8F0),
           ),
         ),
       ),

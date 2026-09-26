@@ -80,12 +80,18 @@ class _DraggableSubtlePlayerControlsState
         top: (_dragOffset.dy - 30).clamp(40.0, screenSize.height - 80.0),
         left: (_dragOffset.dx - 140).clamp(8.0, screenSize.width - 60.0),
         child: GestureDetector(
+          onPanUpdate: (details) {
+            setState(() {
+              _dragOffset = details.globalPosition;
+            });
+          },
+          onPanEnd: (_) => _handleDragEnd(_dragOffset, screenSize),
           onLongPressMoveUpdate: (details) {
             setState(() {
               _dragOffset = details.globalPosition;
             });
           },
-          onLongPressEnd: (details) => _handleDragEnd(details, screenSize),
+          onLongPressEnd: (details) => _handleDragEnd(details.globalPosition, screenSize),
           child: AnimatedScale(
             duration: const Duration(milliseconds: 150),
             scale: 1.05,
@@ -97,6 +103,26 @@ class _DraggableSubtlePlayerControlsState
 
     Widget childWidget = GestureDetector(
       // O arraste só é permitido quando a música estiver PARADA (FAB)
+      onPanStart: isStopped
+          ? (details) {
+              setState(() {
+                _isDragging = true;
+                _dragOffset = details.globalPosition;
+              });
+            }
+          : null,
+      onPanUpdate: isStopped
+          ? (details) {
+              if (_isDragging) {
+                setState(() {
+                  _dragOffset = details.globalPosition;
+                });
+              }
+            }
+          : null,
+      onPanEnd: isStopped
+          ? (_) => _handleDragEnd(_dragOffset, screenSize)
+          : null,
       onLongPressStart: isStopped
           ? (details) {
               setState(() {
@@ -104,6 +130,18 @@ class _DraggableSubtlePlayerControlsState
                 _dragOffset = details.globalPosition;
               });
             }
+          : null,
+      onLongPressMoveUpdate: isStopped
+          ? (details) {
+              if (_isDragging) {
+                setState(() {
+                  _dragOffset = details.globalPosition;
+                });
+              }
+            }
+          : null,
+      onLongPressEnd: isStopped
+          ? (details) => _handleDragEnd(details.globalPosition, screenSize)
           : null,
       child: SubtlePlayerControls(item: widget.item),
     );
@@ -223,9 +261,9 @@ class _DraggableSubtlePlayerControlsState
     }
   }
 
-  void _handleDragEnd(LongPressEndDetails details, Size screenSize) {
-    final dx = details.globalPosition.dx;
-    final dy = details.globalPosition.dy;
+  void _handleDragEnd(Offset globalPosition, Size screenSize) {
+    final dx = globalPosition.dx;
+    final dy = globalPosition.dy;
 
     // Ponto alvo do centro inferior
     final bottomCenterTarget = Offset(screenSize.width / 2, screenSize.height - 40);

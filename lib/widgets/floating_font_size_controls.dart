@@ -179,21 +179,18 @@ class _FloatingFontSizeControlsState extends State<FloatingFontSizeControls> {
           _isDragging = false;
         });
       },
-      child: Tooltip(
-        message: 'Tamanho da fonte (Toque ou arraste)',
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          width: 32,
-          height: 32,
-          decoration: BoxDecoration(
-            color: const Color(0xFF1A365D).withValues(alpha: 0.9),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(
-            Icons.format_size_rounded,
-            size: 18,
-            color: Colors.white,
-          ),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          color: const Color(0xFF1A365D).withValues(alpha: 0.9),
+          shape: BoxShape.circle,
+        ),
+        child: const Icon(
+          Icons.format_size_rounded,
+          size: 18,
+          color: Colors.white,
         ),
       ),
     );
@@ -249,23 +246,20 @@ class _FloatingFontSizeControlsState extends State<FloatingFontSizeControls> {
     required String tooltip,
     required VoidCallback onTap,
   }) {
-    return Tooltip(
-      message: tooltip,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          width: 30,
-          height: 30,
-          decoration: BoxDecoration(
-            color: const Color(0xFF1A365D).withValues(alpha: 0.9),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            icon,
-            size: 16,
-            color: Colors.white,
-          ),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        width: 30,
+        height: 30,
+        decoration: BoxDecoration(
+          color: const Color(0xFF1A365D).withValues(alpha: 0.9),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          icon,
+          size: 16,
+          color: Colors.white,
         ),
       ),
     );

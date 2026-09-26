@@ -151,7 +151,11 @@ class _LyricsViewState extends State<LyricsView> {
                                     ),
                                     onPressed: () =>
                                         Navigator.of(context).maybePop(),
-                                    tooltip: 'Fechar',
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints.tightFor(
+                                      width: 44,
+                                      height: 44,
+                                    ),
                                   ),
                                 if (widget.showTitle)
                                   Expanded(
@@ -181,6 +185,8 @@ class _LyricsViewState extends State<LyricsView> {
                                       ],
                                     ),
                                   ),
+                                if (widget.showCloseButton && widget.showTitle)
+                                  const SizedBox(width: 44),
                               ],
                             ),
                           ),

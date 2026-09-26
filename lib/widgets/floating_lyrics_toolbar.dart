@@ -123,6 +123,20 @@ class _FloatingLyricsToolbarState extends State<FloatingLyricsToolbar> {
       right: rightPos,
       child: GestureDetector(
         behavior: HitTestBehavior.deferToChild,
+        onPanStart: (details) {
+          setState(() {
+            _isDragging = true;
+            _dragOffset = details.globalPosition;
+          });
+        },
+        onPanUpdate: (details) {
+          setState(() {
+            _dragOffset = details.globalPosition;
+          });
+        },
+        onPanEnd: (_) {
+          _handleDragEnd(_dragOffset, screenSize);
+        },
         onLongPressStart: (details) {
           setState(() {
             _isDragging = true;
@@ -135,7 +149,7 @@ class _FloatingLyricsToolbarState extends State<FloatingLyricsToolbar> {
           });
         },
         onLongPressEnd: (details) {
-          _handleDragEnd(details, screenSize);
+          _handleDragEnd(details.globalPosition, screenSize);
         },
         child: AnimatedScale(
           duration: const Duration(milliseconds: 200),
@@ -184,9 +198,9 @@ class _FloatingLyricsToolbarState extends State<FloatingLyricsToolbar> {
     );
   }
 
-  void _handleDragEnd(LongPressEndDetails details, Size screenSize) {
-    final dx = details.globalPosition.dx;
-    final dy = details.globalPosition.dy;
+  void _handleDragEnd(Offset globalPosition, Size screenSize) {
+    final dx = globalPosition.dx;
+    final dy = globalPosition.dy;
 
     const double toolbarVerticalHeight = 210.0;
     final double minBottomGap = widget.bottomOffset + 8.0;

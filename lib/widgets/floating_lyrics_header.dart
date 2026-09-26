@@ -69,8 +69,11 @@ class FloatingLyricsHeader extends StatelessWidget {
                       size: 28,
                     ),
                     onPressed: onClose,
-                    visualDensity: VisualDensity.compact,
-                    tooltip: 'Fechar',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints.tightFor(
+                      width: 40,
+                      height: 40,
+                    ),
                   ),
                 Expanded(
                   child: Column(
@@ -99,6 +102,8 @@ class FloatingLyricsHeader extends StatelessWidget {
                     ],
                   ),
                 ),
+                if (onClose != null)
+                  const SizedBox(width: 40),
               ],
             ),
           ),

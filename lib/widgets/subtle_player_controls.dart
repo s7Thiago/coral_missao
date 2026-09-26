@@ -194,13 +194,10 @@ class _SubtlePlayerControlsState extends State<SubtlePlayerControls> {
       width: 54,
       height: 54,
       alignment: Alignment.center,
-      child: const Tooltip(
-        message: 'Tocar música',
-        child: Icon(
-          Icons.play_arrow_rounded,
-          color: Colors.white,
-          size: 32,
-        ),
+      child: const Icon(
+        Icons.play_arrow_rounded,
+        color: Colors.white,
+        size: 32,
       ),
     );
   }
@@ -350,7 +347,6 @@ class _SubtlePlayerControlsState extends State<SubtlePlayerControls> {
                           ),
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
-                          tooltip: 'Expandir controles',
                         ),
                       )
                     : const SizedBox.shrink(),
@@ -590,7 +586,6 @@ class _SubtlePlayerControlsState extends State<SubtlePlayerControls> {
       iconSize: 20,
       color: Colors.white,
       icon: const Icon(Icons.stop_rounded),
-      tooltip: 'Parar reprodução',
     );
   }
 }
