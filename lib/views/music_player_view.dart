@@ -170,15 +170,13 @@ class _MusicPlayerViewState extends State<MusicPlayerView> {
               ],
             ),
             clipBehavior: Clip.antiAlias,
-            child: AbsorbPointer(
-              child: LyricsView(
-                item: widget.item,
-                showPlayerControls: false,
-                showCloseButton: false,
-                showTitle: false,
-                showAlignmentControls: false,
-                defaultTextAlign: TextAlign.center,
-              ),
+            child: LyricsView(
+              item: widget.item,
+              showPlayerControls: false,
+              showCloseButton: false,
+              showTitle: false,
+              showAlignmentControls: false,
+              defaultTextAlign: TextAlign.center,
             ),
           ),
         );

@@ -8,6 +8,8 @@ import '../widgets/player_overlay.dart';
 import '../widgets/vocal_naipe_selector.dart';
 import '../utils/screen_utils.dart';
 
+import '../widgets/splash_loading_view.dart';
+
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
 
@@ -40,7 +42,25 @@ class _HomeViewState extends State<HomeView> {
       children: [
         Scaffold(
           appBar: AppBar(
-            title: const Text('Repertório Coral'),
+            title: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(
+                  'assets/images/logo.png',
+                  height: 36,
+                  errorBuilder: (context, error, stackTrace) =>
+                      const SizedBox.shrink(),
+                ),
+                const SizedBox(width: 10),
+                const Text(
+                  'Repertório Coral',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+              ],
+            ),
             centerTitle: true,
             backgroundColor: Colors.transparent,
             actions: [
@@ -81,7 +101,7 @@ class _HomeViewState extends State<HomeView> {
           body: Consumer<RepertorioViewModel>(
             builder: (context, viewModel, child) {
               if (viewModel.isLoading) {
-                return const Center(child: CircularProgressIndicator());
+                return const SplashLoadingView();
               }
 
               if (viewModel.error != null) {

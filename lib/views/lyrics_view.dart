@@ -19,7 +19,7 @@ class LyricsView extends StatefulWidget {
     this.showCloseButton = true,
     this.showTitle = true,
     this.showAlignmentControls = true,
-    this.defaultTextAlign = TextAlign.left,
+    this.defaultTextAlign = TextAlign.center,
   });
 
   @override
@@ -152,10 +152,6 @@ class _LyricsViewState extends State<LyricsView> {
                               _buildAlignButton(
                                 icon: Icons.format_align_right_rounded,
                                 align: TextAlign.right,
-                              ),
-                              _buildAlignButton(
-                                icon: Icons.format_align_justify_rounded,
-                                align: TextAlign.justify,
                               ),
                             ],
                           ),
