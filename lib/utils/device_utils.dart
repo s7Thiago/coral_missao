@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:hive/hive.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import 'device_utils_stub.dart'
     if (dart.library.html) 'device_utils_web.dart'
@@ -8,13 +9,10 @@ import 'device_utils_stub.dart'
 
 class DeviceUtils {
   static String? _cachedDeviceId;
+  static String? _cachedAppVersion;
   static const String _storageKey = 'app_device_id';
 
   /// Retorna o identificador único do dispositivo de forma persistente e cross-platform.
-  /// 
-  /// Funciona em Web, PWA, Android, iOS e Desktop sem gerar erros.
-  /// Mesmo que o usuário limpe os dados do app/navegador, a assinatura determinística de hardware/navegador
-  /// é recalculada e gera exatamente o mesmo ID.
   static Future<String> getDeviceId() async {
     if (_cachedDeviceId != null) {
       return _cachedDeviceId!;
@@ -45,8 +43,28 @@ class DeviceUtils {
     }
   }
 
+  /// Retorna a versão do app cadastrada no pubspec.yaml (ex: "v1.0.1+1").
+  static Future<String> getAppVersion() async {
+    if (_cachedAppVersion != null) {
+      return _cachedAppVersion!;
+    }
+    try {
+      final info = await PackageInfo.fromPlatform();
+      final version = info.version.isNotEmpty ? info.version : '1.0.1';
+      final buildNumber = info.buildNumber.isNotEmpty ? info.buildNumber : '1';
+      _cachedAppVersion = 'v$version+$buildNumber';
+      return _cachedAppVersion!;
+    } catch (_) {
+      _cachedAppVersion = 'v1.0.1+1';
+      return _cachedAppVersion!;
+    }
+  }
+
   /// Retorna o ID síncrono previamente em cache (pode ser null se ainda não foi inicializado).
   static String? get cachedDeviceId => _cachedDeviceId;
+
+  /// Retorna a versão síncrona previamente em cache.
+  static String? get cachedAppVersion => _cachedAppVersion;
 
   /// Gera um identificador único com base no hash SHA-256 da assinatura da plataforma.
   static String _generateDeviceId() {

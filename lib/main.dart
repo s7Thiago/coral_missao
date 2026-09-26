@@ -18,8 +18,11 @@ void main() async {
   }
   await Hive.openBox('kitsCoral');
 
-  // Pré-inicializa o ID do dispositivo
-  await DeviceUtils.getDeviceId();
+  // Pré-inicializa o ID do dispositivo e a versão do app
+  await Future.wait([
+    DeviceUtils.getDeviceId(),
+    DeviceUtils.getAppVersion(),
+  ]);
 
   runApp(
     MultiProvider(
@@ -67,14 +70,24 @@ class DeviceIdOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IgnorePointer(
-      child: FutureBuilder<String>(
-        future: DeviceUtils.getDeviceId(),
-        initialData: DeviceUtils.cachedDeviceId,
+      child: FutureBuilder<List<String>>(
+        future: Future.wait([
+          DeviceUtils.getAppVersion(),
+          DeviceUtils.getDeviceId(),
+        ]),
+        initialData: [
+          DeviceUtils.cachedAppVersion ?? 'v1.0.1+1',
+          DeviceUtils.cachedDeviceId ?? '',
+        ],
         builder: (context, snapshot) {
-          final id = snapshot.data;
-          if (id == null || id.isEmpty) {
+          final data = snapshot.data;
+          final version = (data != null && data.isNotEmpty) ? data[0] : 'v1.0.1+1';
+          final id = (data != null && data.length > 1) ? data[1] : '';
+
+          if (id.isEmpty) {
             return const SizedBox.shrink();
           }
+
           return Material(
             type: MaterialType.transparency,
             child: Container(
@@ -84,7 +97,7 @@ class DeviceIdOverlay extends StatelessWidget {
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
-                'ID: $id',
+                '$version | ID: $id',
                 style: TextStyle(
                   fontSize: 9,
                   color: Colors.white.withValues(alpha: 0.55),
@@ -100,4 +113,5 @@ class DeviceIdOverlay extends StatelessWidget {
     );
   }
 }
+
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:provider/provider.dart';
 import '../models/repertorio_model.dart';
 import '../services/audio_service.dart';
@@ -50,9 +51,12 @@ class _LyricsViewState extends State<LyricsView> {
         audioService.currentItem?.id == widget.item.id ||
         audioService.isPlaying;
 
-    final String fullText = widget.item.letra.isNotEmpty
+    final String rawMarkdown = widget.item.letra.isNotEmpty
         ? widget.item.letra.join('\n')
         : 'Nenhuma letra disponível para esta música.';
+
+    // Garante que quebras de linha simples na letra sejam respeitadas no Markdown
+    final String formattedMarkdown = rawMarkdown.replaceAll('\n', '  \n');
 
     return HeroControllerScope(
       controller: HeroController(),
@@ -159,7 +163,7 @@ class _LyricsViewState extends State<LyricsView> {
                       ),
                     ),
 
-                  // Pinch-to-zoom area & Lyrics text view
+                  // Pinch-to-zoom area & Lyrics markdown view
                   Expanded(
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
@@ -185,15 +189,63 @@ class _LyricsViewState extends State<LyricsView> {
                         child: Container(
                           width: double.infinity,
                           constraints: const BoxConstraints(minHeight: 80),
-                          child: Text(
-                            fullText,
-                            textAlign: _textAlign,
-                            style: TextStyle(
-                              fontSize: _fontSize,
-                              height: 1.6,
-                              color: const Color(0xFF2D3748),
-                              fontWeight: FontWeight.w400,
-                              letterSpacing: 0.2,
+                          child: MarkdownBody(
+                            data: formattedMarkdown,
+                            selectable: true,
+                            styleSheet: MarkdownStyleSheet(
+                              textAlign: _getWrapAlignment(_textAlign),
+                              p: TextStyle(
+                                fontSize: _fontSize,
+                                height: 1.6,
+                                color: const Color(0xFF2D3748),
+                                fontWeight: FontWeight.w400,
+                                letterSpacing: 0.2,
+                              ),
+                              h1: TextStyle(
+                                fontSize: _fontSize * 1.4,
+                                height: 1.4,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF1A365D),
+                              ),
+                              h2: TextStyle(
+                                fontSize: _fontSize * 1.25,
+                                height: 1.4,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF2B6CB0),
+                              ),
+                              h3: TextStyle(
+                                fontSize: _fontSize * 1.1,
+                                height: 1.4,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF2D3748),
+                              ),
+                              strong: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1A202C),
+                              ),
+                              em: const TextStyle(
+                                fontStyle: FontStyle.italic,
+                              ),
+                              blockquote: TextStyle(
+                                fontSize: _fontSize,
+                                fontStyle: FontStyle.italic,
+                                color: const Color(0xFF4A5568),
+                              ),
+                              blockquoteDecoration: BoxDecoration(
+                                color: const Color(0xFFEDF2F7),
+                                borderRadius: BorderRadius.circular(4),
+                                border: const Border(
+                                  left: BorderSide(
+                                    color: Color(0xFF3182CE),
+                                    width: 4,
+                                  ),
+                                ),
+                              ),
+                              blockquotePadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              pPadding: const EdgeInsets.only(bottom: 8),
                             ),
                           ),
                         ),
@@ -235,4 +287,19 @@ class _LyricsViewState extends State<LyricsView> {
       visualDensity: VisualDensity.compact,
     );
   }
+
+  WrapAlignment _getWrapAlignment(TextAlign align) {
+    switch (align) {
+      case TextAlign.left:
+      case TextAlign.start:
+        return WrapAlignment.start;
+      case TextAlign.right:
+      case TextAlign.end:
+        return WrapAlignment.end;
+      case TextAlign.center:
+      default:
+        return WrapAlignment.center;
+    }
+  }
 }
+
