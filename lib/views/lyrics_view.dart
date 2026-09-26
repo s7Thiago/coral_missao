@@ -55,8 +55,15 @@ class _LyricsViewState extends State<LyricsView> {
         ? widget.item.letra.join('\n')
         : 'Nenhuma letra disponível para esta música.';
 
-    // Garante que quebras de linha simples na letra sejam respeitadas no Markdown
-    final String formattedMarkdown = rawMarkdown.replaceAll('\n', '  \n');
+    // Garante que quebras de linha simples dentro da mesma estrofe tenham '  \n' (soft break),
+    // enquanto estrofes mantêm a separação por parágrafos do Markdown ('\n\n').
+    final String formattedMarkdown = rawMarkdown
+        .split('\n\n')
+        .map((stanza) =>
+            stanza.split('\n').map((line) => line.trimRight()).join('  \n'))
+        .join('\n\n');
+
+    final wrapAlign = _getWrapAlignment(_textAlign);
 
     return HeroControllerScope(
       controller: HeroController(),
@@ -186,14 +193,24 @@ class _LyricsViewState extends State<LyricsView> {
                           bottom: widget.showPlayerControls ? 140 : 20,
                         ),
                         physics: const BouncingScrollPhysics(),
-                        child: Container(
+                        child: SizedBox(
                           width: double.infinity,
-                          constraints: const BoxConstraints(minHeight: 80),
                           child: MarkdownBody(
                             data: formattedMarkdown,
                             selectable: true,
+                            fitContent: false,
                             styleSheet: MarkdownStyleSheet(
-                              textAlign: _getWrapAlignment(_textAlign),
+                              textAlign: wrapAlign,
+                              h1Align: wrapAlign,
+                              h2Align: wrapAlign,
+                              h3Align: wrapAlign,
+                              h4Align: wrapAlign,
+                              h5Align: wrapAlign,
+                              h6Align: wrapAlign,
+                              unorderedListAlign: wrapAlign,
+                              orderedListAlign: wrapAlign,
+                              blockquoteAlign: wrapAlign,
+                              codeblockAlign: wrapAlign,
                               p: TextStyle(
                                 fontSize: _fontSize,
                                 height: 1.6,
@@ -245,7 +262,7 @@ class _LyricsViewState extends State<LyricsView> {
                                 horizontal: 12,
                                 vertical: 8,
                               ),
-                              pPadding: const EdgeInsets.only(bottom: 8),
+                              pPadding: const EdgeInsets.only(bottom: 16),
                             ),
                           ),
                         ),
