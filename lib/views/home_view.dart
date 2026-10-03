@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../viewmodels/repertorio_viewmodel.dart';
-import '../models/repertorio_model.dart';
+
 import '../services/audio_service.dart';
-import '../widgets/repertorio_list_item.dart';
+import '../viewmodels/repertorio_viewmodel.dart';
+
+import '../widgets/dev_firebase_menu.dart';
+import '../widgets/feature_toggle_guard.dart';
+import '../widgets/firestore_loading_bar.dart';
+import '../widgets/home_app_bar_title.dart';
+import '../widgets/offline_status_chip.dart';
 import '../widgets/player_overlay.dart';
-import '../widgets/vocal_naipe_selector.dart';
-import '../utils/screen_utils.dart';
-
+import '../widgets/repertorio_empty_view.dart';
+import '../widgets/repertorio_list_view.dart';
 import '../widgets/splash_loading_view.dart';
+import '../widgets/vocal_naipe_selector.dart';
 
+/// Tela Principal da aplicação Coral Missão.
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
 
@@ -21,8 +27,6 @@ class _HomeViewState extends State<HomeView> {
   @override
   void initState() {
     super.initState();
-    // Use addPostFrameCallback to ensure context is ready or just call it.
-    // listen: false is crucial here.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<RepertorioViewModel>(context, listen: false).loadRepertorio();
     });
@@ -32,73 +36,24 @@ class _HomeViewState extends State<HomeView> {
   Widget build(BuildContext context) {
     final audioService = context.watch<AudioService>();
     final hasActiveAudio = audioService.currentVoz != null && audioService.currentItem != null;
-    final double maxWidth = context.isDesktop
-        ? 800
-        : context.isTablet
-            ? 700
-            : MediaQuery.of(context).size.width;
 
-    return Stack(
-      children: [
-        Scaffold(
-          appBar: AppBar(
-            title: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Image.asset(
-                  'assets/images/logo.png',
-                  height: 36,
-                  errorBuilder: (context, error, stackTrace) =>
-                      const SizedBox.shrink(),
-                ),
-                const SizedBox(width: 10),
-                const Text(
-                  'Repertório Coral',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                  ),
-                ),
-              ],
-            ),
-            centerTitle: true,
-            backgroundColor: Colors.transparent,
-            actions: [
-              Consumer<RepertorioViewModel>(
-                builder: (context, viewModel, _) {
-                  if (!viewModel.isUsingLocalFallback) {
-                    return const SizedBox.shrink();
-                  }
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 12),
-                    child: Tooltip(
-                      message: 'Sem conexão — exibindo repertório salvo',
-                      child: Chip(
-                        avatar: const Icon(
-                          Icons.wifi_off_rounded,
-                          size: 14,
-                          color: Colors.white,
-                        ),
-                        label: const Text(
-                          'Offline',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        backgroundColor: const Color(0xFF5E819D),
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        visualDensity: VisualDensity.compact,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ],
+    return Scaffold(
+      appBar: AppBar(
+        title: const HomeAppBarTitle(),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        actions: const [
+          OfflineStatusChip(),
+          FeatureToggleGuard(
+            featureName: 'dev_menu',
+            child: DevFirebaseMenu(),
           ),
-          body: Consumer<RepertorioViewModel>(
+        ],
+        bottom: const FirestoreLoadingBar(),
+      ),
+      body: Stack(
+        children: [
+          Consumer<RepertorioViewModel>(
             builder: (context, viewModel, child) {
               if (viewModel.isLoading) {
                 return const SplashLoadingView();
@@ -109,95 +64,32 @@ class _HomeViewState extends State<HomeView> {
               }
 
               if (viewModel.repertorio.isEmpty) {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.music_off_rounded,
-                          size: 64,
-                          color: Colors.grey.shade400,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          viewModel.selectedNaipe == 'TODAS AS VOZES'
-                              ? 'Nenhum dado encontrado.'
-                              : 'Nenhuma música encontrada para o naipe ${viewModel.selectedNaipe}.',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xFF5E819D),
-                          ),
-                        ),
-                        if (viewModel.selectedNaipe != 'TODAS AS VOZES') ...[
-                          const SizedBox(height: 16),
-                          ElevatedButton.icon(
-                            onPressed: () => viewModel.selectNaipe('TODAS AS VOZES'),
-                            icon: const Icon(Icons.refresh_rounded),
-                            label: const Text('Exibir todas as vozes'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF16476B),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 12,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
+                return RepertorioEmptyView(
+                  selectedNaipe: viewModel.selectedNaipe,
+                  onResetNaipe: () => viewModel.selectNaipe('TODAS AS VOZES'),
                 );
               }
 
-              return ListView.builder(
-                padding: EdgeInsets.only(
-                  top: 8,
-                  bottom: hasActiveAudio ? 180 : 100,
-                ),
-                itemCount: viewModel.repertorio.length,
-                itemBuilder: (context, index) {
-                  final RepertorioItem item = viewModel.repertorio[index];
-                  return Center(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxWidth: maxWidth,
-                      ),
-                      child: RepertorioListItem(
-                        key: ValueKey(item.id),
-                        item: item,
-                        isDownloaded: false,
-                        onPressed: () {},
-                        onPlayPressed: () {},
-                      ),
-                    ),
-                  );
-                },
+              return RepertorioListView(
+                repertorio: viewModel.repertorio,
+                hasActiveAudio: hasActiveAudio,
               );
             },
           ),
-        ),
-        // Componente flutuante fixo de seleção de naipes na parte inferior (oculto durante o carregamento)
-        Consumer<RepertorioViewModel>(
-          builder: (context, viewModel, _) {
-            if (viewModel.isLoading) {
-              return const SizedBox.shrink();
-            }
-            return const VocalNaipeSelector();
-          },
-        ),
-        // Overlay do Player de Áudio quando ativo (exibido acima da seleção de naipes)
-        if (hasActiveAudio)
-          PlayerOverlay(item: audioService.currentItem!),
-      ],
+          // Seletor de naipes flutuante no rodapé
+          Consumer<RepertorioViewModel>(
+            builder: (context, viewModel, _) {
+              if (viewModel.isLoading) {
+                return const SizedBox.shrink();
+              }
+              return const VocalNaipeSelector();
+            },
+          ),
+          // Player de Áudio quando ativo
+          if (hasActiveAudio)
+            PlayerOverlay(item: audioService.currentItem!),
+        ],
+      ),
     );
   }
 }
-

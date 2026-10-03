@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "605491078088",
+    "project_id": "coral-missao-4a90d",
+    "storage_bucket": "coral-missao-4a90d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:605491078088:android:d3e2e7e2b7ea47758816fd",
+        "android_client_info": {
+          "package_name": "com.example.coral_missao"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAnrCIS-sCSLw5IMJ_mz5enlkF-Ccx4G2o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
