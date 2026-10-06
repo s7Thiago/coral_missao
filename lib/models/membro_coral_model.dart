@@ -151,15 +151,33 @@ class MembroCoralModel {
     return list;
   }
 
-  /// Retorna o status geral calculated dinamicamente.
+  /// Retorna o status geral calculado dinamicamente.
   String get statusGeralCalculado {
-    if (statusGeral != null && statusGeral!.isNotEmpty) return statusGeral!;
     if (ativo == 'n') return 'Licença / Inativo';
+
+    // Verifica se possui 3 ou mais faltas consecutivas nos ensaios recentes
+    final u4 = ultimos4EnsaiosCalculados;
+    int faltasConsecutivas = 0;
+    for (int i = u4.length - 1; i >= 0; i--) {
+      if (u4[i] == 'F') {
+        faltasConsecutivas++;
+      } else if (u4[i] == 'P') {
+        break;
+      }
+    }
+    if (faltasConsecutivas >= 3) return 'Faltoso Crítico';
+
     final pres = datasEnsaiosPresente.length;
     final falt = datasEnsaiosFaltas.length;
-    if (pres + falt == 0) return 'Ativo';
+    final total = pres + falt;
+    if (total == 0) return 'Ativo';
     final assid = assiduidadeCalculada;
-    if (assid < 0.60) return 'Faltoso Crítico';
+    if (assid < 0.60 && total >= 3) return 'Faltoso Crítico';
+
+    if (statusGeral != null && statusGeral!.isNotEmpty && statusGeral != 'Faltoso Crítico') {
+      return statusGeral!;
+    }
+
     if (assid >= 0.90) return 'Ativo Pleno';
     if (assid >= 0.75) return 'Ativo';
     return 'Regular';

@@ -52,12 +52,21 @@ class EnsaioService {
     );
   }
 
-  /// Recalcula e atualiza no Firestore o 'statusGeral', 'ultimos4Ensaios' e 'assiduidade' dos coristas.
-  Future<void> recalcularEstatisticaMembros({
+  /// Exclui permanentemente um documento de ensaio do Firestore.
+  Future<void> excluirEnsaio(String idEnsaio) async {
+    if (idEnsaio.isEmpty) return;
+    await _firestoreService.deleteDocument(
+      collectionPath: collectionName,
+      docId: idEnsaio,
+    );
+  }
+
+  /// Recalcula e atualiza no Firestore o 'statusGeral', 'ultimos4Ensaios' e 'assiduidade' dos coristas, retornando a lista de membros atualizada.
+  Future<List<MembroCoralModel>> recalcularEstatisticaMembros({
     required List<MembroCoralModel> membros,
     required List<EnsaioModel> todosEnsaios,
   }) async {
-    if (membros.isEmpty) return;
+    if (membros.isEmpty) return membros;
 
     // Filtra apenas ensaios que possuem pelo menos 1 presença ou 1 falta gravada
     final ensaiosValidos = todosEnsaios
@@ -66,12 +75,16 @@ class EnsaioService {
       ..sort((a, b) => a.dataEnsaio.compareTo(b.dataEnsaio));
 
     final batch = _firestoreService.batch();
+    final List<MembroCoralModel> membrosAtualizados = [];
 
     for (final membro in membros) {
-      if (membro.id == null || membro.id!.isEmpty) continue;
+      if (membro.id == null || membro.id!.isEmpty) {
+        membrosAtualizados.add(membro);
+        continue;
+      }
 
-      int presencas = membro.datasEnsaiosPresente.length;
-      int faltas = membro.datasEnsaiosFaltas.length;
+      int presencas = 0;
+      int faltas = 0;
       final ultimos4 = <String>[];
       int faltasConsecutivasRecentes = 0;
       bool contandoFaltasConsecutivas = true;
@@ -108,7 +121,7 @@ class EnsaioService {
         statusGeral = 'Licença / Inativo';
       } else if (total == 0) {
         statusGeral = 'Ativo';
-      } else if (faltasConsecutivasRecentes >= 3 || assiduidade < 0.60) {
+      } else if (faltasConsecutivasRecentes >= 3 || (assiduidade < 0.60 && total >= 3)) {
         statusGeral = 'Faltoso Crítico';
       } else if (assiduidade >= 0.90) {
         statusGeral = 'Ativo Pleno';
@@ -124,8 +137,16 @@ class EnsaioService {
         'ultimos4Ensaios': ultimos4,
         'assiduidade': assiduidade,
       });
+
+      final membroAtualizado = membro.copyWith(
+        statusGeral: statusGeral,
+        ultimos4Ensaios: ultimos4,
+        assiduidade: assiduidade,
+      );
+      membrosAtualizados.add(membroAtualizado);
     }
 
     await batch.commit();
+    return membrosAtualizados;
   }
 }

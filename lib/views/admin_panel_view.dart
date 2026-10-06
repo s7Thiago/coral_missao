@@ -359,6 +359,7 @@ class AdminPanelView extends StatelessWidget {
           const SizedBox(width: 8),
 
           // Botão Modal Equilíbrio Vocal
+          if(isDesktop)
           InkWell(
             onTap: () => VocalBalanceDialog.show(context, viewModel: vm),
             borderRadius: BorderRadius.circular(8),

@@ -297,6 +297,14 @@ class AdminPanelViewModel extends ChangeNotifier {
       membrosFaltantes: faltantes,
     );
 
+    // Atualiza a lista local de ensaios para sincronismo otimista imediato
+    final idx = _todosEnsaios.indexWhere((e) => e.idEnsaio == _ensaioAtual!.idEnsaio);
+    if (idx >= 0) {
+      _todosEnsaios[idx] = _ensaioAtual!;
+    } else {
+      _todosEnsaios.add(_ensaioAtual!);
+    }
+
     // Notifica a UI instantaneamente (otimista)
     notifyListeners();
 
@@ -304,14 +312,12 @@ class AdminPanelViewModel extends ChangeNotifier {
       await _ensaioService.salvarEnsaio(_ensaioAtual!);
       _todosEnsaios = await _ensaioService.getTodosEnsaios();
 
-      // Recalcula estatísticas dos membros no Firestore
-      await _ensaioService.recalcularEstatisticaMembros(
+      // Recalcula estatísticas dos membros e atualiza em memória instantaneamente
+      _membros = await _ensaioService.recalcularEstatisticaMembros(
         membros: _membros,
         todosEnsaios: _todosEnsaios,
       );
-
-      // Recarrega a lista de membros com os novos dados calculados
-      _membros = await _membroService.getMembrosCoral();
+      _ordenarMembros();
       notifyListeners();
     } catch (e) {
       _errorMessage = 'Erro ao salvar presença: $e';
@@ -333,12 +339,11 @@ class AdminPanelViewModel extends ChangeNotifier {
 
       // Recalcula as estatísticas caso o status de ativo tenha mudado
       _todosEnsaios = await _ensaioService.getTodosEnsaios();
-      _membros = await _membroService.getMembrosCoral();
-      await _ensaioService.recalcularEstatisticaMembros(
-        membros: _membros,
+      final membrosCarregados = await _membroService.getMembrosCoral();
+      _membros = await _ensaioService.recalcularEstatisticaMembros(
+        membros: membrosCarregados,
         todosEnsaios: _todosEnsaios,
       );
-      _membros = await _membroService.getMembrosCoral();
       _ordenarMembros();
     } catch (e) {
       _errorMessage = 'Erro ao salvar dados do corista: $e';
@@ -359,10 +364,11 @@ class AdminPanelViewModel extends ChangeNotifier {
 
       // Recalcula estatísticas
       _todosEnsaios = await _ensaioService.getTodosEnsaios();
-      await _ensaioService.recalcularEstatisticaMembros(
+      _membros = await _ensaioService.recalcularEstatisticaMembros(
         membros: _membros,
         todosEnsaios: _todosEnsaios,
       );
+      _ordenarMembros();
     } catch (e) {
       _errorMessage = 'Erro ao excluir corista: $e';
     } finally {
@@ -385,15 +391,41 @@ class AdminPanelViewModel extends ChangeNotifier {
       await _ensaioService.resetarEnsaio(ensaioTarget.idEnsaio);
       _todosEnsaios = await _ensaioService.getTodosEnsaios();
 
-      await _ensaioService.recalcularEstatisticaMembros(
+      _membros = await _ensaioService.recalcularEstatisticaMembros(
         membros: _membros,
         todosEnsaios: _todosEnsaios,
       );
+      _ordenarMembros();
 
-      _membros = await _membroService.getMembrosCoral();
       await _carregarOuCriarEnsaioParaData(dataEnsaioFormatada);
     } catch (e) {
       _errorMessage = 'Erro ao resetar ensaio: $e';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Exclui um documento de ensaio do Firestore e recalcula estatísticas.
+  Future<void> excluirEnsaio(String idEnsaio) async {
+    if (idEnsaio.isEmpty) return;
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await _ensaioService.excluirEnsaio(idEnsaio);
+      _todosEnsaios = await _ensaioService.getTodosEnsaios();
+
+      _membros = await _ensaioService.recalcularEstatisticaMembros(
+        membros: _membros,
+        todosEnsaios: _todosEnsaios,
+      );
+      _ordenarMembros();
+
+      await _carregarOuCriarEnsaioParaData(dataEnsaioFormatada);
+    } catch (e) {
+      _errorMessage = 'Erro ao excluir ensaio: $e';
     } finally {
       _isLoading = false;
       notifyListeners();

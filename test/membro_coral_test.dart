@@ -41,5 +41,31 @@ void main() {
       expect(jsonOut['naipeVocal'], equals('Soprano'));
       expect(jsonOut['id'], equals('doc_123'));
     });
+
+    test('Calcula Faltoso Crítico quando possui 3 faltas consecutivas nos ultimos4Ensaios', () {
+      final membro = const MembroCoralModel(
+        id: '1',
+        nome: 'João Silva',
+        ativo: 's',
+        ultimos4Ensaios: ['P', 'F', 'F', 'F'],
+        assiduidade: 0.75,
+      );
+
+      expect(membro.statusGeralCalculado, equals('Faltoso Crítico'));
+    });
+
+    test('Não considera Faltoso Crítico quando possui apenas 1 falta e ensaios sem registro N', () {
+      final membro = const MembroCoralModel(
+        id: '2',
+        nome: 'Maria Souza',
+        ativo: 's',
+        ultimos4Ensaios: ['N', 'N', 'N', 'F'],
+        datasEnsaiosPresente: [],
+        datasEnsaiosFaltas: ['2026-03-01'],
+        assiduidade: 0.0,
+      );
+
+      expect(membro.statusGeralCalculado, equals('Regular'));
+    });
   });
 }
