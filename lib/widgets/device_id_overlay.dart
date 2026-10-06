@@ -30,7 +30,7 @@ class DeviceIdOverlay extends StatelessWidget {
         return Material(
           type: MaterialType.transparency,
           child: GestureDetector(
-            onLongPress: () async {
+            onTap: () async {
               await Clipboard.setData(ClipboardData(text: id));
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(

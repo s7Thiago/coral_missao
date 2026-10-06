@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../services/audio_service.dart';
 import '../viewmodels/repertorio_viewmodel.dart';
 
+import '../widgets/admin_panel_action_button.dart';
 import '../widgets/dev_firebase_menu.dart';
 import '../widgets/feature_toggle_guard.dart';
 import '../widgets/firestore_loading_bar.dart';
@@ -44,6 +45,10 @@ class _HomeViewState extends State<HomeView> {
         backgroundColor: Colors.transparent,
         actions: const [
           OfflineStatusChip(),
+          FeatureToggleGuard(
+            featureName: 'adm_panel',
+            child: AdminPanelActionButton(),
+          ),
           FeatureToggleGuard(
             featureName: 'dev_menu',
             child: DevFirebaseMenu(),

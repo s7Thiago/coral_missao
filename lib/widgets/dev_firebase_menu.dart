@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/feature_toggle_service.dart';
+import '../services/membro_coral_service.dart';
 import '../utils/device_utils.dart';
 import 'error_details_dialog.dart';
 import 'grant_access_dialog.dart';
@@ -40,6 +41,8 @@ class DevFirebaseMenu extends StatelessWidget {
           );
         } else if (value == 'view_feature_toggle') {
           await _viewCurrentFeatureToggle(context);
+        } else if (value == 'seed_membro_coral') {
+          await _seedMembroCoralCollection(context);
         }
       },
       itemBuilder: (context) => [
@@ -109,6 +112,21 @@ class DevFirebaseMenu extends StatelessWidget {
               Expanded(
                 child: Text(
                   'Ver JSON do Feature Toggle',
+                  style: TextStyle(fontSize: 12.5),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const PopupMenuItem<String>(
+          value: 'seed_membro_coral',
+          child: Row(
+            children: [
+              Icon(Icons.group_add_rounded, size: 20, color: Color(0xFF16476B)),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Popular "membro_coral" (Excel)',
                   style: TextStyle(fontSize: 12.5),
                 ),
               ),
@@ -188,6 +206,45 @@ class DevFirebaseMenu extends StatelessWidget {
         await ErrorDetailsDialog.show(
           context,
           title: 'Erro ao Buscar Dados do Firestore',
+          error: e,
+        );
+      }
+    }
+  }
+
+  /// Popula a coleção 'membro_coral' no Firestore utilizando o JSON de ficha cadastral vindo do Excel
+  Future<void> _seedMembroCoralCollection(BuildContext context) async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final membroService = context.read<MembroCoralService>();
+
+    scaffoldMessenger.showSnackBar(
+      const SnackBar(
+        content: Text('Migrando fichas cadastrais do Excel para "membro_coral"...'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+
+    try {
+      final count = await membroService.seedMembrosCoralFromAsset();
+
+      if (context.mounted) {
+        await JsonConfigDialog.show(
+          context,
+          title: '🔥 Coleção "membro_coral" Populada!',
+          subtitle: 'Sucesso ao migrar dados cadastrais do JSON (Excel) para o Firestore.',
+          jsonString: const JsonEncoder.withIndent('  ').convert({
+            'status': 'sucesso',
+            'collection': 'membro_coral',
+            'total_membros_inseridos': count,
+          }),
+          highlightInfo: 'Total inserido: $count membros',
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        await ErrorDetailsDialog.show(
+          context,
+          title: 'Erro ao Popular Coleção "membro_coral"',
           error: e,
         );
       }

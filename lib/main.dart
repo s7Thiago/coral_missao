@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'viewmodels/admin_panel_viewmodel.dart';
 import 'viewmodels/repertorio_viewmodel.dart';
 import 'views/home_view.dart';
 
@@ -13,6 +14,8 @@ import 'package:coral_missao/utils/device_utils.dart';
 import 'services/audio_service.dart';
 import 'services/firestore_service.dart';
 import 'services/feature_toggle_service.dart';
+import 'services/membro_coral_service.dart';
+import 'services/ensaio_service.dart';
 import 'widgets/device_id_overlay.dart';
 
 void main() async {
@@ -47,8 +50,24 @@ void main() async {
             firestoreService: context.read<FirestoreService>(),
           ),
         ),
+        Provider(
+          create: (context) => MembroCoralService(
+            firestoreService: context.read<FirestoreService>(),
+          ),
+        ),
+        Provider(
+          create: (context) => EnsaioService(
+            firestoreService: context.read<FirestoreService>(),
+          ),
+        ),
         ChangeNotifierProvider(create: (_) => RepertorioViewModel()),
         ChangeNotifierProvider(create: (_) => AudioService()),
+        ChangeNotifierProvider(
+          create: (context) => AdminPanelViewModel(
+            membroService: context.read<MembroCoralService>(),
+            ensaioService: context.read<EnsaioService>(),
+          ),
+        ),
       ],
       child: const MyApp(),
     ),

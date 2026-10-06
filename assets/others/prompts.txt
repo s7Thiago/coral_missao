@@ -8,5 +8,5 @@ IMPORTANTE: tudo o que você implementar, lembre-se de preferir sempre fazer có
 - Criar ferramentas de desenvolvimento via menu de contexto para facilitar a integração
 - No menu de desenvolvimento, adicionar ferramentas para gerenciar o acesso a features do app
 - Refatorado componente de IdOverlay para limpar o código, e também para ter função de copiar deviceId
-- Implementado componente de loading para mostrar operações em andamento com o firestore
+- Implementar componente de loading para mostrar operações em andamento com o firestore
 - Criar componente para ocultar partes da tela apenas para deviceIds específicos

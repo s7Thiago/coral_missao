@@ -32,6 +32,8 @@ migrate_working_dir/
 .pub/
 /build/
 /coverage/
+/assets/ficha_cadastral.json
+/assets/others/
 
 # Symbolication related
 app.*.symbols
