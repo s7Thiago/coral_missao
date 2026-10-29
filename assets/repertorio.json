@@ -1,5 +1,35 @@
 [
     {
+        "id": "rei_dos_reis_00",
+        "titulo": "REI DOS REIS",
+        "vozes": [
+            {
+                "naipe": "PLAYBACK",
+                "link": "https://firebasestorage.googleapis.com/v0/b/coral-missao-4a90d.firebasestorage.app/o/REI_DOS_REIS.PLAYBACK.mp4?alt=media&token=3180c76c-a031-449b-9782-8ff4be9fb9ca"
+            }
+        ],
+        "letra": [
+            "[Rei dos reis!](https://kits-coral-missao.netlify.app/) Deus criador do Céu!",
+            "**Honra e glória** ao Deus infinito em poder!",
+            "Terra e Céu, cantai ao grande Rei!",
+            "Deus criador, Deus redentor",
+            "Deus Rei dos reis!",
+            "---",
+            "**Adorai**, glorificai o nome de Cristo!",
+            "**Exaltai**, magnificai Jesus, o Senhor!",
+            "Terra e Céu, cantai louvor a Deus!",
+            "Ele morreu! __Ele venceu!__",
+            "É Rei dos reis!",
+            "---",
+            "**Adorai**, glorificai o nome de Cristo!",
+            "**Exaltai**, magnificai Jesus, o Senhor!",
+            "Terra e Céu, cantai louvor a Deus!",
+            "Ele morreu! __Ele venceu!__",
+            "É Rei dos reis!"
+        ],
+        "tamanho": "8.91MB"
+    },
+    {
         "id": "ele_vem_00",
         "titulo": "ELE VEM",
         "vozes": [

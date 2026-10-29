@@ -17,7 +17,7 @@ class RepertorioService {
         List<RepertorioItem> repertorio = data
             .map((json) => RepertorioItem.fromJson(json))
             .toList();
-        repertorio.sort((a, b) => a.titulo.compareTo(b.titulo));
+        // repertorio.sort((a, b) => a.titulo.compareTo(b.titulo));
         return repertorio;
       } else {
         throw Exception('Failed to load repertorio: ${response.statusCode}');
