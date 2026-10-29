@@ -5,15 +5,19 @@
         "vozes": [
             {
                 "naipe": "CONTRALTO",
-                "link": "https://firebasestorage.googleapis.com/v0/b/coral-missao-4a90d.firebasestorage.app/o/ELE_VEM.CONTRALTO.mp3?alt=media&token=88dc1803-e27f-4557-b9b1-488ee1ae7fff"
+                "link": "https://firebasestorage.googleapis.com/v0/b/coral-missao-4a90d.firebasestorage.app/o/ELE_VEM.CONTRALTO.mp3?alt=media&token=ff025453-9daf-4f95-92b3-80db6c843c1f"
             },
             {
                 "naipe": "SOPRANO",
-                "link": "https://firebasestorage.googleapis.com/v0/b/coral-missao-4a90d.firebasestorage.app/o/ELE_VEM.SOPRANO-brenda.mp3?alt=media&token=bea9d52e-1c23-44e1-ab8d-030ce2ae9855"
+                "link": "https://firebasestorage.googleapis.com/v0/b/coral-missao-4a90d.firebasestorage.app/o/ELE_VEM.SOPRANO.mp3?alt=media&token=8c886a63-3e26-46d1-af35-4c058cb53735"
+            },
+            {
+                "naipe": "BARITONO",
+                "link": "https://firebasestorage.googleapis.com/v0/b/coral-missao-4a90d.firebasestorage.app/o/ELE_VEM.BARITONO.mp3?alt=media&token=3044c178-65b5-40eb-87e7-3a0de0705a46"
             },
             {
                 "naipe": "TENOR",
-                "link": "https://firebasestorage.googleapis.com/v0/b/coral-missao-4a90d.firebasestorage.app/o/ELE_VEM.TENOR.mp3?alt=media&token=129294a8-d79a-44ba-a4c4-113b1e405832"
+                "link": "https://firebasestorage.googleapis.com/v0/b/coral-missao-4a90d.firebasestorage.app/o/ELE_VEM.TENOR.mp3?alt=media&token=c0e9d0ee-100a-458e-ae87-52d71fcb1c84"
             },
             {
                 "naipe": "PLAYBACK",
